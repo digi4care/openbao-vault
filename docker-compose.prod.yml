@@ -1,0 +1,21 @@
+version: '3.7'
+
+services:
+  vault:
+    image: hashicorp/vault:latest
+    container_name: vault-prod
+    environment:
+      - VAULT_LOCAL_CONFIG
+      - VAULT_TLS_DISABLE
+    env_file:
+      - .env.vault.prod
+    ports:
+      - "49281:8200"  # Toegankelijk op poort 49281 voor externe verbindingen
+    volumes:
+      - ./vault/data:/vault/file
+      - ./vault/config:/vault/config
+      - ./vault/tls:/vault/tls
+    cap_add:
+      - IPC_LOCK
+    restart: unless-stopped
+    command: server -config=/vault/config/vault-config.hcl
