@@ -157,7 +157,7 @@ openbao-vault/
    ./run_in_container.sh add_service.sh -o acme-corp -s payment -k stripe=sk_test_12345 -k paypal=client_id_abcdef
    ```
 
-6. **Create a global admin user** (optional)
+6. **Create a global admin user** (optional but recommended)
 
    ```bash
    ./run_in_container.sh create_global_admin.sh --username admin
