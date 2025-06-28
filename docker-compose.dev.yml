@@ -9,7 +9,7 @@ services:
     ports:
       - "127.0.0.1:49281:8200"  # Alleen lokaal toegankelijk op poort 49281
     volumes:
-      - ./scripts:/usr/local/bin/openbao-scripts  # Scripts beschikbaar in container
+      - ./scripts:/opt/bin  # Scripts beschikbaar in container
     cap_add:
       - IPC_LOCK
     restart: unless-stopped
