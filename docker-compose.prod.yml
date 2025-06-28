@@ -1,15 +1,19 @@
 services:
-  vault:
-    image: quay.io/openbao/openbao:2.3.1
+  openbao-prod:
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: openbao-prod
     environment:
       - VAULT_LOCAL_CONFIG
       - VAULT_TLS_DISABLE
     env_file:
       - .env.vault.prod
+    command: server -config=/vault/config/vault-config.hcl
     ports:
       - "127.0.0.1:8200:8200"  # Alleen lokaal toegankelijk op poort 8200
     volumes:
+      - ./scripts:/opt/bin  # Scripts beschikbaar in container
       - ./vault/data:/vault/file
       - ./vault/config:/vault/config
       - ./vault/tls:/vault/tls
@@ -17,4 +21,4 @@ services:
       - IPC_LOCK
     restart: unless-stopped
     mem_swappiness: 0  # Voorkomt swapping voor betere prestaties en veiligheid
-    command: server -config=/vault/config/vault-config.hcl
+

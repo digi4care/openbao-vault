@@ -110,30 +110,46 @@ openbao-vault/
 
    Note: In development mode, OpenBAO is automatically initialized and unsealed. The `init_openbao.sh` script is primarily used in production to check if OpenBAO is accessible.
 
-3. **Prepare a namespace**
+3. **Running scripts**
+
+   The OpenBAO scripts need to run inside the Docker container. You can use the provided wrapper script to execute them:
 
    ```bash
-   ./scripts/prepare_namespace.sh --namespace example
+   # The wrapper script automatically finds the root token if VAULT_TOKEN is not set
+   ./run_in_container.sh prepare_namespace.sh --namespace example
+   ```
+
+   Or run them directly in the container:
+
+   ```bash
+   # Manual execution in the container
+   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-dev /opt/bin/prepare_namespace.sh --namespace example
+   ```
+
+4. **Prepare a namespace**
+
+   ```bash
+   ./run_in_container.sh prepare_namespace.sh --namespace example
    ```
 
    This script sets up the basic configuration for a namespace and displays the credentials you'll need for application integration.
 
-4. **Add a client**
+5. **Add a client**
 
    ```bash
-   ./scripts/add_client.sh -c client1 -k slack=xoxb-12345 -k twitter=abcdef
+   ./run_in_container.sh add_client.sh -c client1 -k slack=xoxb-12345 -k twitter=abcdef
    ```
 
-5. **Create an admin user** (optional)
+6. **Create an admin user** (optional)
 
    ```bash
-   ./scripts/create_admin.sh --username admin
+   ./run_in_container.sh create_admin.sh --username admin
    ```
 
-6. **Create a client operator** (optional)
+7. **Create a client operator** (optional)
 
    ```bash
-   ./scripts/create_operator.sh --namespace example --client client1 --username client1-operator
+   ./run_in_container.sh create_operator.sh --namespace example --client client1 --username client1-operator
    ```
 
 ## 🛠️ Available Scripts
@@ -417,14 +433,15 @@ export VAULT_TOKEN=<token-from-logs>
 8. **Create an admin user** (recommended):
 
    ```bash
-   ./scripts/create_admin.sh --username admin
+   # For production, run scripts directly in the container
+   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/create_admin.sh --username admin
    ```
 
 9. **Prepare namespaces and add clients**:
 
    ```bash
-   ./scripts/prepare_namespace.sh --namespace example
-   ./scripts/add_client.sh -c client1 -k api_key=12345
+   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/prepare_namespace.sh --namespace example
+   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/add_client.sh -c client1 -k api_key=12345
    ```
 
 ## 🔄 Step-by-Step: Restarting in Production
