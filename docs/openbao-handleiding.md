@@ -1,13 +1,16 @@
-# OpenBAO Tokens en Opstarten: Een Eenvoudige Uitleg
+# OpenBAO Handleiding: Tokens, Opstarten en Scripts
 
-Dit document legt uit hoe tokens en het opstarten van OpenBAO werken, zowel in de ontwikkel- als productieomgeving.
+Deze handleiding legt uit hoe OpenBAO werkt, zowel in de ontwikkel- als productieomgeving, met focus op tokens, opstarten en het gebruik van scripts.
 
 ## Inhoudsopgave
 
 - [Ontwikkelomgeving vs. Productieomgeving](#ontwikkelomgeving-vs-productieomgeving)
+- [Beschikbare Scripts](#beschikbare-scripts)
 - [Tokens in Ontwikkelomgeving](#tokens-in-ontwikkelomgeving)
 - [Tokens in Productieomgeving](#tokens-in-productieomgeving)
-- [Stap-voor-stap: Eerste Keer Opstarten in Productie](#stap-voor-stap-eerste-keer-opstarten-in-productie)
+- [Stap-voor-stap: Eerste Keer Opstarten](#stap-voor-stap-eerste-keer-opstarten)
+  - [In Ontwikkeling](#in-ontwikkeling)
+  - [In Productie](#in-productie)
 - [Stap-voor-stap: Herstart in Productie](#stap-voor-stap-herstart-in-productie)
 - [Veelgestelde Vragen](#veelgestelde-vragen)
 
@@ -19,6 +22,7 @@ Dit document legt uit hoe tokens en het opstarten van OpenBAO werken, zowel in d
 - **Beveiliging**: Minimaal (voor gemak van ontwikkeling)
 - **Opstarten**: Automatisch, geen handmatige stappen nodig
 - **Data persistentie**: Geen, alles verdwijnt bij herstart
+- **Root Token**: Standaard `root-token-dev` (ingesteld in `.env.vault.dev`)
 
 ### Productieomgeving
 
@@ -26,6 +30,27 @@ Dit document legt uit hoe tokens en het opstarten van OpenBAO werken, zowel in d
 - **Beveiliging**: Maximaal (sealed/unsealed concept)
 - **Opstarten**: Handmatige stappen vereist
 - **Data persistentie**: Volledig, alles blijft bewaard
+- **Root Token**: Gegenereerd bij initialisatie, moet veilig bewaard worden
+
+## Beschikbare Scripts
+
+### init_openbao.sh
+
+Dit script controleert of OpenBAO bereikbaar is en toont de status. Het is de eerste stap in het opzetten van OpenBAO.
+
+### prepare_n8n.sh
+
+Dit script bereidt de n8n namespace voor door:
+
+- Een namespace aan te maken
+- KV secrets engine in te schakelen
+- AppRole authenticatie te configureren
+- Policies aan te maken
+- Role ID en Secret ID te genereren voor n8n
+
+### add_client.sh
+
+Dit script voegt een nieuwe klant toe aan OpenBAO met de juiste secrets.
 
 ## Tokens in Ontwikkelomgeving
 
@@ -54,9 +79,25 @@ In de productieomgeving:
 3. **Persistentie**: De token blijft geldig totdat je hem intrekt of vernieuwt
 4. **Veiligheid**: De root token heeft volledige toegang, gebruik deze alleen voor initiële setup
 
-## Stap-voor-stap: Eerste Keer Opstarten in Productie
+## Stap-voor-stap: Eerste Keer Opstarten
 
-Wanneer je OpenBAO voor het eerst in productie start:
+### In Ontwikkeling
+
+```bash
+# Start de container
+docker compose -f docker-compose.dev.yml up -d
+
+# Stel de root token in
+export VAULT_TOKEN=root-token-dev
+
+# Initialiseer OpenBAO
+./scripts/init_openbao.sh
+
+# Bereid de n8n namespace voor
+./scripts/prepare_n8n.sh
+```
+
+### In Productie
 
 1. **Start de container**:
 
@@ -102,7 +143,24 @@ Wanneer je OpenBAO voor het eerst in productie start:
    vault login [Root Token]
    ```
 
-6. **Stel alles in** (namespaces, policies, etc.)
+6. **Verlaat de container**:
+
+   ```bash
+   exit
+   ```
+
+7. **Stel de root token in voor de scripts**:
+
+   ```bash
+   export VAULT_TOKEN=[Root Token]
+   ```
+
+8. **Voer de scripts uit**:
+
+   ```bash
+   ./scripts/init_openbao.sh
+   ./scripts/prepare_n8n.sh
+   ```
 
 ## Stap-voor-stap: Herstart in Productie
 
