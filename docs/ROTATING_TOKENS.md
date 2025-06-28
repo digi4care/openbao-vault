@@ -1,95 +1,94 @@
-# Token Rotatie in OpenBAO
+# Token Rotation in OpenBAO
 
-Dit document legt uit hoe token rotatie werkt in OpenBAO en hoe je het `rotate_tokens.sh` script kunt gebruiken om je beveiligingsposture te verbeteren.
+This document explains how token rotation works in OpenBAO and how you can use the `rotate_tokens.sh` script to improve your security posture.
 
-## Wat is token rotatie?
+## What is token rotation?
 
-In OpenBAO/Vault worden tokens gebruikt om toegang te krijgen tot geheimen en resources. Een token is een soort tijdelijk wachtwoord dat toegang geeft tot specifieke resources op basis van de gekoppelde policies.
+In OpenBAO/Vault, tokens are used to access secrets and resources. A token is a type of temporary password that provides access to specific resources based on the associated policies.
 
-Het probleem met permanente tokens of tokens met een zeer lange levensduur is dat ze een significant beveiligingsrisico vormen als ze worden gestolen, gelekt of gecompromitteerd. Als een aanvaller toegang krijgt tot een permanent token, hebben ze potentieel voor onbeperkte tijd toegang tot gevoelige gegevens.
+The problem with permanent tokens or tokens with a very long lifetime is that they pose a significant security risk if they are stolen, leaked, or compromised. If an attacker gains access to a permanent token, they potentially have unlimited access to sensitive data.
 
-Token rotatie is een beveiligingspraktijk waarbij tokens regelmatig worden vervangen door nieuwe tokens met een beperkte levensduur. Dit beperkt de schade die kan worden aangericht als een token wordt gecompromitteerd.
+Token rotation is a security practice where tokens are regularly replaced with new tokens that have a limited lifetime. This limits the damage that can be done if a token is compromised.
 
-## Hoe werkt het `rotate_tokens.sh` script?
+## How does the `rotate_tokens.sh` script work?
 
-Het `rotate_tokens.sh` script automatiseert het proces van token rotatie en implementeert best practices voor token lifecycle management. Het script doet het volgende:
+The `rotate_tokens.sh` script automates the process of token rotation and implements best practices for token lifecycle management. The script does the following:
 
-1. **Maakt korte-termijn tokens**: In plaats van een token te gebruiken dat voor altijd geldig is, maakt dit script tokens die automatisch verlopen na een bepaalde tijd (TTL - Time To Live).
+1. **Creates short-term tokens**: Instead of using a token that is valid forever, this script creates tokens that automatically expire after a certain time (TTL - Time To Live).
 
-2. **Stelt een maximale levensduur in**: Zelfs als je het token verlengt (renews), zal het uiteindelijk definitief verlopen na de maximale levensduur (max TTL).
+2. **Sets a maximum lifetime**: Even if you renew the token, it will eventually expire permanently after the maximum lifetime (max TTL).
 
-3. **Koppelt tokens aan specifieke policies**: Het token krijgt alleen de rechten die het nodig heeft, volgens het principe van least privilege.
+3. **Associates tokens with specific policies**: The token only gets the permissions it needs, following the principle of least privilege.
 
-4. **Slaat tokens veilig op**: Het script slaat de nieuwe tokens op in bestanden die je kunt gebruiken in je applicaties of scripts.
+4. **Stores tokens securely**: The script saves the new tokens in files that you can use in your applications or scripts.
 
-5. **Ondersteunt verschillende authenticatiemethoden**: Het script werkt zowel met userpass authenticatie (voor menselijke gebruikers) als met AppRole authenticatie (voor services en applicaties).
+5. **Supports different authentication methods**: The script works with both userpass authentication (for human users) and AppRole authentication (for services and applications).
 
-## Praktische voorbeelden
+## Practical examples
 
-### Voor menselijke gebruikers (userpass authenticatie)
+### For human users (userpass authentication)
 
-Stel je hebt een global admin account en je wilt veilig werken:
+Suppose you have a global admin account and you want to work securely:
 
 ```bash
 ./run_in_container.sh rotate_tokens.sh -u admin.user -t 1h -m 24h -p admin
 ```
 
-Dit geeft je een token dat:
+This gives you a token that:
+- Is valid for 1 hour (`-t 1h`)
+- Can be renewed for a maximum of 24 hours (`-m 24h`)
+- Has the admin policy (`-p admin`)
 
-- 1 uur geldig is (`-t 1h`)
-- Maximaal 24 uur kan worden verlengd (`-m 24h`)
-- De admin policy heeft (`-p admin`)
+You use this token for your work instead of entering your password each time. After 1 hour, the token must be renewed, which can happen automatically if your application supports it. After 24 hours, the token expires permanently and you need to create a new token.
 
-Je gebruikt dit token voor je werkzaamheden in plaats van steeds je wachtwoord in te voeren. Na 1 uur moet het token worden verlengd (renewal), wat automatisch kan gebeuren als je applicatie dat ondersteunt. Na 24 uur verloopt het token definitief en moet je een nieuw token aanmaken.
+### For services (AppRole authentication)
 
-### Voor services (AppRole authenticatie)
-
-Voor geautomatiseerde processen en applicaties:
+For automated processes and applications:
 
 ```bash
 ./run_in_container.sh rotate_tokens.sh -r payment-service -t 1h -p payment-service-policy
 ```
 
-Dit maakt een token voor de payment-service AppRole met dezelfde beperkingen qua levensduur.
+This creates a token for the payment-service AppRole with the same lifetime restrictions.
 
-## Waarom is token rotatie belangrijk?
+## Why is token rotation important?
 
-1. **Beperkte schade bij diefstal**: Als iemand je token steelt, hebben ze maximaal de TTL of max TTL toegang, niet voor altijd.
+1. **Limited damage in case of theft**: If someone steals your token, they have access for a maximum of the TTL or max TTL, not forever.
 
-2. **Automatische intrekking**: Je hoeft tokens niet handmatig in te trekken; ze verlopen vanzelf na de ingestelde periode.
+2. **Automatic revocation**: You don't need to manually revoke tokens; they expire automatically after the set period.
 
-3. **Audit trail**: Elk token laat sporen na in de audit logs, zodat je kunt zien wie wat heeft gedaan en wanneer.
+3. **Audit trail**: Each token leaves traces in the audit logs, so you can see who did what and when.
 
-4. **Geen wachtwoorden opslaan**: Applicaties hoeven geen wachtwoorden op te slaan, alleen korte-termijn tokens die regelmatig worden ververst.
+4. **No password storage**: Applications don't need to store passwords, only short-term tokens that are regularly refreshed.
 
-5. **Compliance**: Veel beveiligingsstandaarden en compliance frameworks (zoals PCI DSS, SOC2, ISO 27001) vereisen regelmatige rotatie van credentials.
+5. **Compliance**: Many security standards and compliance frameworks (such as PCI DSS, SOC2, ISO 27001) require regular rotation of credentials.
 
-## Best practices voor token rotatie
+## Best practices for token rotation
 
-1. **Gebruik korte TTL's**: Hoe korter de levensduur van een token, hoe veiliger. Voor interactieve sessies is 1-4 uur meestal voldoende.
+1. **Use short TTLs**: The shorter the lifetime of a token, the more secure it is. For interactive sessions, 1-4 hours is usually sufficient.
 
-2. **Implementeer automatische verlenging**: Voor langere sessies, implementeer automatische token verlenging (renewal) in je applicaties.
+2. **Implement automatic renewal**: For longer sessions, implement automatic token renewal in your applications.
 
-3. **Beperk de maximale levensduur**: Zelfs met verlenging moet een token uiteindelijk verlopen. Een max TTL van 24-72 uur is gebruikelijk.
+3. **Limit the maximum lifetime**: Even with renewal, a token must eventually expire. A max TTL of 24-72 hours is common.
 
-4. **Gebruik verschillende tokens voor verschillende doeleinden**: Maak aparte tokens voor verschillende applicaties of functies, elk met hun eigen specifieke policies.
+4. **Use different tokens for different purposes**: Create separate tokens for different applications or functions, each with their own specific policies.
 
-5. **Sla tokens veilig op**: Behandel tokens als gevoelige gegevens en sla ze veilig op, bijvoorbeeld in een secrets manager of als environment variabelen.
+5. **Store tokens securely**: Treat tokens as sensitive data and store them securely, for example in a secrets manager or as environment variables.
 
-6. **Roteer regelmatig**: Implementeer een schema voor regelmatige token rotatie, zelfs voordat tokens verlopen.
+6. **Rotate regularly**: Implement a schedule for regular token rotation, even before tokens expire.
 
-## Integratie met CI/CD en automatisering
+## Integration with CI/CD and automation
 
-Voor productieomgevingen is het aan te raden om token rotatie te integreren in je CI/CD pipeline of automatiseringsprocessen:
+For production environments, it is recommended to integrate token rotation into your CI/CD pipeline or automation processes:
 
-1. **Scheduled jobs**: Gebruik cron jobs of scheduled tasks om regelmatig nieuwe tokens te genereren.
+1. **Scheduled jobs**: Use cron jobs or scheduled tasks to regularly generate new tokens.
 
-2. **Secrets management**: Integreer met een secrets manager zoals HashiCorp Vault zelf, AWS Secrets Manager, of Azure Key Vault om tokens veilig op te slaan en te distribueren.
+2. **Secrets management**: Integrate with a secrets manager such as HashiCorp Vault itself, AWS Secrets Manager, or Azure Key Vault to securely store and distribute tokens.
 
-3. **Monitoring**: Implementeer monitoring om te waarschuwen wanneer tokens bijna verlopen of wanneer er ongebruikelijke tokenactiviteit is.
+3. **Monitoring**: Implement monitoring to alert when tokens are about to expire or when there is unusual token activity.
 
-## Conclusie
+## Conclusion
 
-Token rotatie is een essentiële beveiligingspraktijk voor elke OpenBAO/Vault implementatie. Door regelmatig tokens te verversen en hun levensduur te beperken, verminder je aanzienlijk het risico van ongeautoriseerde toegang tot je geheimen en systemen.
+Token rotation is an essential security practice for any OpenBAO/Vault implementation. By regularly refreshing tokens and limiting their lifetime, you significantly reduce the risk of unauthorized access to your secrets and systems.
 
-Het `rotate_tokens.sh` script maakt het eenvoudig om deze best practice te implementeren in je omgeving, of je nu een enkele admin bent of een groot team met vele services en applicaties.
+The `rotate_tokens.sh` script makes it easy to implement this best practice in your environment, whether you're a single admin or a large team with many services and applications.
