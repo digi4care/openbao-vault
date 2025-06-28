@@ -16,4 +16,5 @@ services:
     cap_add:
       - IPC_LOCK
     restart: unless-stopped
+    mem_swappiness: 0  # Voorkomt swapping voor betere prestaties en veiligheid
     command: server -config=/vault/config/vault-config.hcl

@@ -2,10 +2,8 @@ services:
   vault:
     image: quay.io/openbao/openbao:2.3.1
     container_name: vault-dev
-    environment:
-      - VAULT_DEV_ROOT_TOKEN_ID=root-token-dev
-      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
-      - VAULT_ADDR=http://127.0.0.1:8200
+    env_file:
+      - .env.vault.dev
     ports:
       - "127.0.0.1:49281:8200"  # Alleen lokaal toegankelijk op poort 49281
     volumes:
@@ -13,4 +11,5 @@ services:
     cap_add:
       - IPC_LOCK
     restart: unless-stopped
+    mem_swappiness: 0  # Voorkomt swapping voor betere prestaties en veiligheid
     # Geen command betekent dat het in dev-mode start
