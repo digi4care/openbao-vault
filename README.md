@@ -176,7 +176,7 @@ Om OpenBAO te gebruiken in n8n workflows:
 
 2. **Configureer de Vault node**:
 
-   - URL: `http://jouw-server-ip:49281`
+   - URL: `https://vault.hummer.ai` (productie) of `http://127.0.0.1:49281` (ontwikkeling)
    - Auth Method: AppRole
    - Role ID: _van init_openbao.sh_
    - Secret ID: _van init_openbao.sh_
@@ -230,16 +230,18 @@ Standaard zie je bij een nieuwe installatie alleen de "token" authenticatiemetho
 
 ## 🐳 Scripts in Docker
 
-De scripts zijn ook beschikbaar binnen de Docker container. Je kunt ze direct vanuit de container gebruiken:
+De scripts zijn ook beschikbaar binnen de Docker container in de ontwikkelomgeving. Je kunt ze direct vanuit de container gebruiken:
 
 ```bash
 # Verbind met de container
 docker exec -it vault-dev sh
 
 # Voer scripts uit vanuit de container
-sh /usr/local/bin/openbao-scripts/init_openbao.sh
-sh /usr/local/bin/openbao-scripts/add_client.sh -c klant1 -k slack=xoxb-12345
+sh /opt/bin/init_openbao.sh
+sh /opt/bin/add_client.sh -c klant1 -k slack=xoxb-12345
 ```
+
+**Let op:** In de productieomgeving zijn de scripts niet beschikbaar in de container voor betere beveiliging.
 
 Dit is handig als je direct in de container wilt werken zonder de scripts op je host systeem uit te voeren.
 
@@ -263,11 +265,18 @@ Ja, de API toegang is beveiligd via AppRole authenticatie. Wanneer n8n verbindin
 
 ### Is deze setup veilig voor productie?
 
-De basis setup is veilig, maar voor productie raden we aan om:
+De productie setup is beveiligd met de volgende maatregelen:
 
-- TLS te configureren (zie docker-compose.prod.yml)
-- Firewall regels in te stellen
-- Regelmatig backups te maken
+- OpenBAO is alleen lokaal toegankelijk (127.0.0.1:8200)
+- TLS-terminatie wordt afgehandeld door LiteSpeed als reverse proxy
+- Scripts zijn verwijderd uit de productiecontainer
+- Swapping is uitgeschakeld (mem_swappiness: 0)
+
+Voor extra beveiliging raden we aan om:
+
+- Firewall regels in te stellen voor de LiteSpeed reverse proxy
+- Regelmatig backups te maken van de data directory
+- Audit logging in te schakelen
 
 ### Wat als ik meer klanten wil toevoegen?
 
