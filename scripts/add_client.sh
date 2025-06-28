@@ -79,7 +79,7 @@ echo "Controleren of namespace '$NAMESPACE' bestaat..."
 NAMESPACE_CHECK=$(vault namespace list)
 if ! echo "$NAMESPACE_CHECK" | grep -q "$NAMESPACE/"; then
   echo "FOUT: Namespace '$NAMESPACE' bestaat niet."
-  echo "Voer eerst het prepare_namespace.sh script uit met: ./run_in_container.sh prepare_namespace.sh --namespace $NAMESPACE"
+  echo "Voer eerst het create_namespace.sh script uit met: ./run_in_container.sh create_namespace.sh --namespace $NAMESPACE"
   exit 1
 fi
 echo "Namespace '$NAMESPACE' gevonden."

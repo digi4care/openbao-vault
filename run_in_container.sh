@@ -8,7 +8,7 @@ set -e
 # Check if the script name is provided
 if [ $# -eq 0 ]; then
   echo "Usage: $0 <script_name> [arguments...]"
-  echo "Example: $0 prepare_namespace.sh --namespace example"
+  echo "Example: $0 create_namespace.sh --namespace example"
   exit 1
 fi
 
@@ -26,7 +26,7 @@ fi
 if [ -z "$VAULT_TOKEN" ]; then
   echo "VAULT_TOKEN is not set. Attempting to get the latest root token from container logs..."
   ROOT_TOKEN=$(docker logs openbao-dev 2>&1 | grep "Root Token:" | tail -1 | awk '{print $NF}')
-  
+
   if [ -z "$ROOT_TOKEN" ]; then
     echo "Could not find Root Token in container logs."
     echo "Please set VAULT_TOKEN manually: export VAULT_TOKEN=<your-token>"

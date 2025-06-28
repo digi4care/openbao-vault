@@ -122,7 +122,7 @@ fi
 echo -e "\nControleren of namespace $NAMESPACE bestaat..."
 if ! vault namespace list | grep -q "^$NAMESPACE/"; then
   echo "FOUT: Namespace $NAMESPACE bestaat niet"
-  echo "Maak eerst de namespace aan met prepare_namespace.sh"
+  echo "Maak eerst de namespace aan met create_namespace.sh"
   exit 1
 fi
 

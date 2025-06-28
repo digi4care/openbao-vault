@@ -81,7 +81,7 @@ openbao-vault/
 ├── .env.vault.prod           # Environment variables for production
 ├── scripts/
 │   ├── init_openbao.sh       # Script for initial setup
-│   ├── prepare_namespace.sh  # Script for namespace preparation
+│   ├── create_namespace.sh  # Script for namespace preparation
 │   ├── add_client.sh         # Script for adding clients
 │   ├── create_admin.sh       # Script for creating admin users
 │   └── create_operator.sh    # Script for creating client operators
@@ -119,20 +119,20 @@ openbao-vault/
 
    ```bash
    # The wrapper script automatically finds the root token if VAULT_TOKEN is not set
-   ./run_in_container.sh prepare_namespace.sh --namespace example
+   ./run_in_container.sh create_namespace.sh --namespace example
    ```
 
    Or run them directly in the container:
 
    ```bash
    # Manual execution in the container
-   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-dev /opt/bin/prepare_namespace.sh --namespace example
+   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-dev /opt/bin/create_namespace.sh --namespace example
    ```
 
 4. **Prepare a namespace**
 
    ```bash
-   ./run_in_container.sh prepare_namespace.sh --namespace example
+   ./run_in_container.sh create_namespace.sh --namespace example
    ```
 
    This script sets up the basic configuration for a namespace and displays the credentials you'll need for application integration.
@@ -188,7 +188,7 @@ This script:
 
 This script checks if OpenBAO is accessible and displays its status. It's primarily used in production environments, as in development mode OpenBAO is automatically initialized and unsealed.
 
-### prepare_namespace.sh
+### create_namespace.sh
 
 This script prepares a namespace by:
 
@@ -201,7 +201,7 @@ This script prepares a namespace by:
 **Usage:**
 
 ```bash
-./scripts/prepare_namespace.sh --namespace [name] --path [path] --role [role] --ttl [time]
+./scripts/create_namespace.sh --namespace [name] --path [path] --role [role] --ttl [time]
 ```
 
 ### add_client.sh
@@ -304,7 +304,7 @@ OpenBAO uses a hierarchy of user roles for secure management:
    - For applications like n8n
    - Read-only access to specific secrets
    - Short-lived tokens
-   - Created via `prepare_namespace.sh`
+   - Created via `create_namespace.sh`
 
 ### Creating a Global Admin
 
@@ -360,10 +360,10 @@ vault login -method=userpass username=client1-operator
 
 ### Creating a New Namespace
 
-Use the `prepare_namespace.sh` script:
+Use the `create_namespace.sh` script:
 
 ```bash
-./scripts/prepare_namespace.sh --namespace marketing --path secrets --role api-access
+./scripts/create_namespace.sh --namespace marketing --path secrets --role api-access
 ```
 
 ### Adding a New Client
@@ -392,7 +392,7 @@ vault kv put clients/client1/api-keys slack=new-token twitter=new-token
 ### Integration with n8n
 
 1. Use the Vault node in n8n
-2. Configure it with the Role ID and Secret ID from the `prepare_namespace.sh` script
+2. Configure it with the Role ID and Secret ID from the `create_namespace.sh` script
 3. Use the path `clients/client-id/api-keys` to access secrets
 
 ### Integration with Other Applications
@@ -421,7 +421,7 @@ export VAULT_TOKEN=<token-from-logs>
 # ./scripts/init_openbao.sh
 
 # Prepare a namespace
-./scripts/prepare_namespace.sh --namespace example
+./scripts/create_namespace.sh --namespace example
 ```
 
 ### In Production
@@ -495,7 +495,7 @@ export VAULT_TOKEN=<token-from-logs>
 9. **Prepare namespaces and add clients**:
 
    ```bash
-   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/prepare_namespace.sh --namespace example
+   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/create_namespace.sh --namespace example
    docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/add_client.sh -c client1 -k api_key=12345
    ```
 
