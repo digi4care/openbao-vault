@@ -22,7 +22,7 @@ show_help() {
 }
 
 # Configuratie
-VAULT_ADDR=${VAULT_ADDR:-"http://127.0.0.1:49281"}
+VAULT_ADDR=${VAULT_ADDR:-"http://127.0.0.1:8200"}
 VAULT_TOKEN=${VAULT_TOKEN:-"root-token-dev"}
 NAMESPACE="n8n"
 CLIENT_ID=""
@@ -90,13 +90,13 @@ if [ -n "$JSON_FILE" ]; then
     echo "FOUT: JSON bestand '$JSON_FILE' bestaat niet."
     exit 1
   fi
-  
+
   # Controleer of jq is geïnstalleerd
   if ! command -v jq &> /dev/null; then
     echo "FOUT: 'jq' is niet geïnstalleerd. Installeer het met 'apt-get install jq' of 'yum install jq'."
     exit 1
   fi
-  
+
   # Lees het JSON bestand en voeg elke key-value toe aan het commando
   for key in $(jq -r 'keys[]' "$JSON_FILE"); do
     value=$(jq -r ".[\"$key\"]" "$JSON_FILE")
