@@ -1,5 +1,3 @@
-version: '3.7'
-
 services:
   vault:
     image: quay.io/openbao/openbao:2.3.1
