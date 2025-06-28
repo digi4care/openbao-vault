@@ -19,7 +19,7 @@ show_help() {
   echo "  -p, --password WACHT   Operator wachtwoord (optioneel, wordt anders gevraagd)"
   echo "  -h, --help             Toon deze help"
   echo ""
-  echo "Voorbeeld: $0 --namespace digi4care --client klant123 --username klant123-operator"
+  echo "Voorbeeld: $0 --namespace service1 --client klant1 --username klant1-operator"
   exit 1
 }
 

@@ -230,25 +230,48 @@ Example of a keys.json file:
 }
 ```
 
-### create_admin.sh
+### create_global_admin.sh
 
 This script creates a global admin user who can manage all namespaces. This admin replaces the root token for daily use.
 
 **Usage:**
 
 ```bash
-./scripts/create_admin.sh --username admin
+./run_in_container.sh create_global_admin.sh --username admin
 ```
+
+**Permissions:**
+
+- Full system access (can manage all namespaces, policies, auth methods, etc.)
+- Can create and manage all secrets engines
+- Can create and manage all policies
+- Can create and manage all namespaces
 
 ### create_operator.sh
 
-This script creates an operator for a specific client who can only manage that client's secrets.
+This script creates an operator for a specific client who can only manage that client's secrets within a specific namespace.
 
 **Usage:**
 
 ```bash
-./scripts/create_operator.sh --namespace example --client client1 --username client1-operator
+./run_in_container.sh create_operator.sh --namespace example --client client1 --username client1-operator
 ```
+
+**Permissions:**
+
+- Limited to a single client's secrets within the specified namespace
+- Can read/write only that client's secrets
+- Cannot access other clients' secrets or system configuration
+
+### User Access Hierarchy
+
+The system implements a hierarchical access model:
+
+1. **Root Token**: Full system access, should only be used for initial setup and emergencies
+2. **Admin Users**: Global administrators who can manage the entire system
+3. **Operator Users**: Client-specific operators who can only manage their assigned client's secrets
+
+This follows the principle of least privilege - users only get access to what they need to perform their specific tasks.
 
 ## 👥 User Management
 
@@ -268,7 +291,7 @@ OpenBAO uses a hierarchy of user roles for secure management:
    - Global administrator who can manage all namespaces
    - Can create namespaces, auth methods, and policies
    - Replaces the root token for daily management
-   - Created via `create_admin.sh`
+   - Created via `create_global_admin.sh`
 
 3. **Operators**
 
@@ -283,12 +306,12 @@ OpenBAO uses a hierarchy of user roles for secure management:
    - Short-lived tokens
    - Created via `prepare_namespace.sh`
 
-### Creating an Admin
+### Creating a Global Admin
 
-Use the `create_admin.sh` script to create a global admin:
+Use the `create_global_admin.sh` script to create a global admin:
 
 ```bash
-./scripts/create_admin.sh --username admin
+./scripts/create_global_admin.sh --username admin
 ```
 
 The admin gets full rights to:

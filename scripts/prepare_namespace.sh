@@ -10,7 +10,7 @@ show_help() {
   echo "Gebruik: $0 [opties]"
   echo ""
   echo "Opties:"
-  echo "  -n, --namespace NAAM   Namespace naam (standaard: digi4care)"
+  echo "  -n, --namespace NAAM   Namespace naam (standaard: service)"
   echo "  -p, --path PAD         Pad voor KV secrets engine (standaard: clients)"
   echo "  -r, --role NAAM        AppRole naam (standaard: namespace-role)"
   echo "  -t, --ttl TIJD         Token TTL in uren (standaard: 1h)"
@@ -22,7 +22,7 @@ show_help() {
 
 # Configuratie met standaardwaarden
 VAULT_ADDR=${VAULT_ADDR:-"http://127.0.0.1:8200"}
-NAMESPACE="digi4care"
+NAMESPACE="service"
 SECRETS_PATH="clients"
 ROLE_NAME=""
 TOKEN_TTL="1h"

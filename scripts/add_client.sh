@@ -17,8 +17,8 @@ show_help() {
   echo "  -h              Toon deze hulp"
   echo
   echo "Voorbeelden:"
-  echo "  $0 -n digi4care -c klant1 -k slack=xoxb-12345 -k twitter=abcdef"
-  echo "  $0 -n digi4care -c klant2 -f keys.json"
+  echo "  $0 -n service -c klant1 -k slack=xoxb-12345 -k twitter=abcdef"
+  echo "  $0 -n service -c klant2 -f keys.json"
   exit 1
 }
 
