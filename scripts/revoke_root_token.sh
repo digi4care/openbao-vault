@@ -4,6 +4,8 @@
 # Author: Chris Engelhard <chris@chrisengelhard.nl>
 # Date: 2025-06-28
 
+set -e
+
 # Show help information
 show_help() {
   echo "Revoke OpenBAO Root Token"

@@ -184,11 +184,15 @@ This script:
 
 ## 🛠️ Available Scripts
 
-### init_openbao.sh
+This repository includes several utility scripts to help you manage your OpenBAO instance:
+
+### Core Management Scripts
+
+#### init_openbao.sh
 
 This script checks if OpenBAO is accessible and displays its status. It's primarily used in production environments, as in development mode OpenBAO is automatically initialized and unsealed.
 
-### create_namespace.sh
+#### create_namespace.sh
 
 This script prepares an organization namespace by:
 
@@ -280,6 +284,51 @@ This script creates an operator for a specific service who can only manage that 
 - Limited to a single service's secrets within the specified organization
 - Can read/write only that service's secrets
 - Cannot access other services' secrets or system configuration
+
+### Advanced Security Scripts
+
+#### enable_mfa.sh
+
+This script enables Multi-Factor Authentication (MFA) for a user, adding an extra layer of security especially for administrative accounts.
+
+**Usage:**
+
+```bash
+# For TOTP (Time-based One-Time Password)
+./run_in_container.sh enable_mfa.sh -u admin.user -t totp
+
+# For Duo Security
+./run_in_container.sh enable_mfa.sh -u admin.user -t duo -d DUO_INTEGRATION_KEY -s DUO_SECRET_KEY -h DUO_API_HOST
+```
+
+**Features:**
+
+- Supports TOTP (compatible with Google Authenticator, Authy, etc.)
+- Supports Duo Security integration
+- Enforces MFA for sensitive operations
+- Generates QR codes for easy setup
+
+#### rotate_tokens.sh
+
+This script implements token lifecycle management, allowing you to create short-lived tokens with automatic expiration.
+
+**Usage:**
+
+```bash
+# Create a token for a user
+./run_in_container.sh rotate_tokens.sh -u admin.user -t 1h -m 24h -p admin
+
+# Create a token for an AppRole
+./run_in_container.sh rotate_tokens.sh -r payment-service -t 1h -p payment-service-policy
+```
+
+**Features:**
+
+- Creates tokens with limited TTL (Time-To-Live)
+- Supports both userpass and AppRole authentication
+- Saves tokens securely to files
+- Implements token role constraints
+- Enables regular token rotation for enhanced security
 
 ### User Access Hierarchy
 
