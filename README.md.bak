@@ -1,16 +1,17 @@
-# 🔐 OpenBAO Setup voor n8n Integratie
+# 🔐 OpenBAO Setup voor Multi-Namespace Secrets Management
 
-OpenBAO (Open Build, Authenticate, and Operate) is een open-source fork van HashiCorp Vault die volledig open-source blijft onder de MPL 2.0 licentie. Deze setup is specifiek ontworpen voor integratie met n8n workflows, waarbij voor elke klant aparte secrets worden beheerd.
+OpenBAO (Open Build, Authenticate, and Operate) is een open-source fork van HashiCorp Vault die volledig open-source blijft onder de MPL 2.0 licentie. Deze setup is ontworpen voor het beheren van secrets in meerdere namespaces, ideaal voor multi-tenant toepassingen en integraties met verschillende systemen zoals n8n.
 
 ## 📋 Inhoudsopgave
 
 - [Wat is OpenBAO?](#wat-is-openbao)
-- [Waarom OpenBAO voor n8n?](#waarom-openbao-voor-n8n)
+- [Waarom OpenBAO voor Secrets Management?](#waarom-openbao-voor-secrets-management)
 - [Installatie](#installatie)
 - [Snelstart](#snelstart)
 - [Scripts Uitleg](#scripts-uitleg)
-- [Klanten Beheren](#klanten-beheren)
-- [n8n Integratie](#n8n-integratie)
+- [Namespaces en Clients Beheren](#namespaces-en-clients-beheren)
+- [Gebruikersbeheer](#gebruikersbeheer)
+- [Applicatie Integratie](#applicatie-integratie)
 - [Structuur Uitleg](#structuur-uitleg)
 - [Scripts in Docker](#scripts-in-docker)
 - [Veelgestelde Vragen](#veelgestelde-vragen)
@@ -26,14 +27,15 @@ OpenBAO biedt dezelfde kernfuncties als HashiCorp Vault:
 - Toegangsbeheer met policies
 - Verschillende authenticatiemethoden
 
-## 🤔 Waarom OpenBAO voor n8n?
+## 🤔 Waarom OpenBAO voor Secrets Management?
 
-Bij het werken met n8n workflows is het belangrijk om gevoelige gegevens zoals API keys veilig op te slaan. Door OpenBAO te gebruiken:
+Bij het werken met gevoelige gegevens zoals API keys is veilige opslag essentieel. Door OpenBAO te gebruiken:
 
-1. **Houd je secrets buiten n8n**: Geen API keys in je workflows
-2. **Klantspecifieke secrets**: Elke klant heeft zijn eigen geïsoleerde omgeving
-3. **Dynamische toegang**: Workflows kunnen dynamisch secrets ophalen op basis van klant-ID
+1. **Gecentraliseerde secrets**: Alle gevoelige gegevens op één veilige plaats
+2. **Multi-tenant isolatie**: Elke namespace/client heeft zijn eigen geïsoleerde omgeving
+3. **Dynamische toegang**: Applicaties kunnen dynamisch secrets ophalen op basis van namespace/client-ID
 4. **Verbeterde beveiliging**: Centraal beheer van toegangsrechten en audit logs
+5. **Flexibele authenticatie**: Verschillende authenticatiemethoden voor verschillende use-cases
 
 ## 📦 Installatie
 

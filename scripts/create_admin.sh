@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script voor het aanmaken van een globale admin gebruiker in OpenBAO
-# Auteur: Cascade
+# Auteur: Chris Engelhard <chris@chrisengelhard.nl>
 # Datum: 2025-06-28
 
 set -e
@@ -70,11 +70,11 @@ if [ -z "$PASSWORD" ]; then
   echo -n "Voer wachtwoord in voor gebruiker $USERNAME: "
   read -s PASSWORD
   echo ""
-  
+
   echo -n "Voer wachtwoord nogmaals in: "
   read -s PASSWORD_CONFIRM
   echo ""
-  
+
   if [ "$PASSWORD" != "$PASSWORD_CONFIRM" ]; then
     echo "FOUT: Wachtwoorden komen niet overeen"
     exit 1

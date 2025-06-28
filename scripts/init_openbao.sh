@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script voor initiële setup van OpenBAO
-# Auteur: Cascade
+# Auteur: Chris Engelhard <chris@chrisengelhard.nl>
 # Datum: 2025-06-28
 
 set -e

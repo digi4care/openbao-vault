@@ -61,12 +61,12 @@ Om de gegevens te gebruiken in een volgende node:
 
 ### Voorbeeld 1: API key ophalen
 
-- **URL**: `https://vault.hummer.ai:49281/v1/secret/data/klanten/klant123/api-keys`
+- **URL**: `https://example.com:8200/v1/secret/data/klanten/klant123/api-keys`
 - In een volgende node: `{{$node["HTTP Request"].json.data.data.wordpress}}`
 
 ### Voorbeeld 2: Database credentials ophalen
 
-- **URL**: `https://vault.hummer.ai:49281/v1/secret/data/klanten/klant123/database`
+- **URL**: `https://example.com:8200/v1/secret/data/klanten/klant123/database`
 - In een volgende node: `{{$node["HTTP Request"].json.data.data.password}}`
 
 ## Troubleshooting

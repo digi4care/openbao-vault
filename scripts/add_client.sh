@@ -1,6 +1,6 @@
 #!/bin/bash
 # Script voor het toevoegen van een nieuwe klant in OpenBAO
-# Auteur: Cascade
+# Auteur: Chris Engelhard <chris@chrisengelhard.nl>
 # Datum: 2025-06-28
 
 set -e
