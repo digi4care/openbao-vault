@@ -24,7 +24,7 @@ show_help() {
 # Configuratie
 VAULT_ADDR=${VAULT_ADDR:-"http://127.0.0.1:8200"}
 VAULT_TOKEN=${VAULT_TOKEN:-"root-token-dev"}
-NAMESPACE="n8n"
+NAMESPACE="digi4care"
 CLIENT_ID=""
 API_KEYS=()
 JSON_FILE=""
@@ -127,7 +127,7 @@ echo "De volgende API keys zijn opgeslagen:"
 # Toon de opgeslagen keys (alleen de namen, niet de waarden)
 vault kv get -format=json clients/$CLIENT_ID/api-keys | jq -r '.data.data | keys[]'
 
-echo -e "\nOm deze keys te gebruiken in n8n:"
+echo -e "\nOm deze keys te gebruiken in '$NAMESPACE':"
 echo "1. Gebruik de Vault node"
 echo "2. Configureer met de eerder verkregen Role ID en Secret ID"
 echo "3. Gebruik pad: clients/$CLIENT_ID/api-keys"
