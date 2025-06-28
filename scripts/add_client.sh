@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Script voor het toevoegen van een nieuwe klant in OpenBAO
 # Auteur: Chris Engelhard <chris@chrisengelhard.nl>
 # Datum: 2025-06-28
@@ -7,55 +7,61 @@ set -e
 
 # Functie voor het tonen van hulp
 show_help() {
-  echo "Gebruik: $0 -c CLIENT_ID [-k KEY1=VALUE1] [-k KEY2=VALUE2] ..."
+  echo "Gebruik: $0 -n NAMESPACE -c CLIENT_ID [-k KEY1=VALUE1] [-k KEY2=VALUE2] ..."
   echo
   echo "Opties:"
+  echo "  -n NAMESPACE    Verplicht: Namespace waarin de klant wordt toegevoegd"
   echo "  -c CLIENT_ID    Verplicht: ID van de klant (bijv. 'klant1')"
   echo "  -k KEY=VALUE    Optioneel: API key in formaat NAAM=WAARDE (meerdere -k opties mogelijk)"
   echo "  -f FILE         Optioneel: Pad naar JSON bestand met API keys"
   echo "  -h              Toon deze hulp"
   echo
   echo "Voorbeelden:"
-  echo "  $0 -c klant1 -k slack=xoxb-12345 -k twitter=abcdef"
-  echo "  $0 -c klant2 -f keys.json"
+  echo "  $0 -n digi4care -c klant1 -k slack=xoxb-12345 -k twitter=abcdef"
+  echo "  $0 -n digi4care -c klant2 -f keys.json"
   exit 1
 }
 
 # Configuratie
 VAULT_ADDR=${VAULT_ADDR:-"http://127.0.0.1:8200"}
 VAULT_TOKEN=${VAULT_TOKEN:-"root-token-dev"}
-NAMESPACE="digi4care"
+NAMESPACE=""
 CLIENT_ID=""
-API_KEYS=()
+API_KEYS=""
 JSON_FILE=""
 
 # Verwerk command line argumenten
-while getopts "c:k:f:h" opt; do
+while getopts "n:c:k:f:h" opt; do
   case $opt in
+    n) NAMESPACE="$OPTARG" ;;
     c) CLIENT_ID="$OPTARG" ;;
-    k) API_KEYS+=("$OPTARG") ;;
+    k) API_KEYS="$API_KEYS $OPTARG" ;;
     f) JSON_FILE="$OPTARG" ;;
     h) show_help ;;
     *) show_help ;;
   esac
 done
 
-# Controleer of CLIENT_ID is opgegeven
+# Controleer of NAMESPACE en CLIENT_ID zijn opgegeven
+if [ -z "$NAMESPACE" ]; then
+  echo "FOUT: Namespace is verplicht"
+  show_help
+fi
+
 if [ -z "$CLIENT_ID" ]; then
   echo "FOUT: Klant ID is verplicht"
   show_help
 fi
 
 # Controleer of er API keys zijn opgegeven of een JSON bestand
-if [ ${#API_KEYS[@]} -eq 0 ] && [ -z "$JSON_FILE" ]; then
+if [ -z "$API_KEYS" ] && [ -z "$JSON_FILE" ]; then
   echo "FOUT: Geen API keys opgegeven. Gebruik -k KEY=VALUE of -f FILE"
   show_help
 fi
 
-# Exporteer omgevingsvariabelen
+# Exporteer omgevingsvariabelen voor initiële verbinding
 export VAULT_ADDR
 export VAULT_TOKEN
-export VAULT_NAMESPACE=$NAMESPACE
 
 echo "OpenBAO klant toevoegen: $CLIENT_ID"
 echo "================================================"
@@ -70,17 +76,22 @@ fi
 
 # Controleer of de namespace bestaat
 echo "Controleren of namespace '$NAMESPACE' bestaat..."
-if ! vault namespace list | grep -q "^$NAMESPACE/"; then
+NAMESPACE_CHECK=$(vault namespace list)
+if ! echo "$NAMESPACE_CHECK" | grep -q "$NAMESPACE/"; then
   echo "FOUT: Namespace '$NAMESPACE' bestaat niet."
-  echo "Voer eerst het init_openbao.sh script uit."
+  echo "Voer eerst het prepare_namespace.sh script uit met: ./run_in_container.sh prepare_namespace.sh --namespace $NAMESPACE"
   exit 1
 fi
+echo "Namespace '$NAMESPACE' gevonden."
+
+# Nu de namespace is gevonden, exporteer VAULT_NAMESPACE
+export VAULT_NAMESPACE=$NAMESPACE
 
 # Bouw het commando voor het opslaan van secrets
 CMD="vault kv put clients/$CLIENT_ID/api-keys"
 
 # Voeg API keys toe aan het commando als ze zijn opgegeven via -k
-for key_value in "${API_KEYS[@]}"; do
+for key_value in $API_KEYS; do
   CMD="$CMD $key_value"
 done
 
