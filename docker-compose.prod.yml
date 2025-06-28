@@ -1,7 +1,7 @@
 services:
   vault:
     image: quay.io/openbao/openbao:2.3.1
-    container_name: vault-prod
+    container_name: openbao-prod
     environment:
       - VAULT_LOCAL_CONFIG
       - VAULT_TLS_DISABLE

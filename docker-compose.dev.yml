@@ -1,7 +1,7 @@
 services:
   vault:
     image: quay.io/openbao/openbao:2.3.1
-    container_name: vault-dev
+    container_name: openbao-dev
     env_file:
       - .env.vault.dev
     ports:
