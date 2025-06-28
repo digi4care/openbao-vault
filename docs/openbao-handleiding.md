@@ -8,6 +8,10 @@ Deze handleiding legt uit hoe OpenBAO werkt, zowel in de ontwikkel- als producti
 - [Beschikbare Scripts](#beschikbare-scripts)
 - [Tokens in Ontwikkelomgeving](#tokens-in-ontwikkelomgeving)
 - [Tokens in Productieomgeving](#tokens-in-productieomgeving)
+- [Gebruikersbeheer](#gebruikersbeheer)
+  - [Gebruikersrollen](#gebruikersrollen)
+  - [Admin Aanmaken](#admin-aanmaken)
+  - [Client Operators Aanmaken](#client-operators-aanmaken)
 - [Stap-voor-stap: Eerste Keer Opstarten](#stap-voor-stap-eerste-keer-opstarten)
   - [In Ontwikkeling](#in-ontwikkeling)
   - [In Productie](#in-productie)
@@ -38,19 +42,33 @@ Deze handleiding legt uit hoe OpenBAO werkt, zowel in de ontwikkel- als producti
 
 Dit script controleert of OpenBAO bereikbaar is en toont de status. Het is de eerste stap in het opzetten van OpenBAO.
 
-### prepare_n8n.sh
+### prepare_namespace.sh
 
-Dit script bereidt de n8n namespace voor door:
+Dit script bereidt een namespace voor door:
 
 - Een namespace aan te maken
 - KV secrets engine in te schakelen
 - AppRole authenticatie te configureren
 - Policies aan te maken
-- Role ID en Secret ID te genereren voor n8n
+- Role ID en Secret ID te genereren voor de namespace
+
+Gebruik:
+
+```bash
+./scripts/prepare_namespace.sh --namespace [naam] --path [pad] --role [rol] --ttl [tijd]
+```
 
 ### add_client.sh
 
 Dit script voegt een nieuwe klant toe aan OpenBAO met de juiste secrets.
+
+### create_admin.sh
+
+Dit script maakt een globale admin gebruiker aan die alle namespaces kan beheren. Deze admin vervangt de root token voor dagelijks gebruik.
+
+### create_operator.sh
+
+Dit script maakt per client een operator aan die alleen de secrets van die specifieke client kan beheren.
 
 ## Tokens in Ontwikkelomgeving
 
@@ -78,6 +96,82 @@ In de productieomgeving:
 2. **Bij herstart**: De token blijft hetzelfde, maar OpenBAO is "sealed" (vergrendeld)
 3. **Persistentie**: De token blijft geldig totdat je hem intrekt of vernieuwt
 4. **Veiligheid**: De root token heeft volledige toegang, gebruik deze alleen voor initiële setup
+
+## Gebruikersbeheer
+
+### Gebruikersrollen
+
+OpenBAO gebruikt een hiërarchie van gebruikersrollen voor veilig beheer:
+
+1. **Root Token**
+
+   - Hoogste niveau van toegang
+   - Alleen gebruiken voor initiële setup en noodgevallen
+   - Moet worden ingetrokken (revoked) na gebruik
+   - Heeft toegang tot alle functies en data
+
+2. **Admin**
+
+   - Globale beheerder die alle namespaces kan beheren
+   - Kan namespaces, auth methodes en policies aanmaken
+   - Vervangt de root token voor dagelijks beheer
+   - Aangemaakt via `create_admin.sh`
+
+3. **Operators**
+
+   - Per client/namespace een operator
+   - Kan alleen de secrets van die specifieke client beheren
+   - Heeft geen toegang tot systeeminstellingen of andere clients
+   - Aangemaakt via `create_operator.sh`
+
+4. **AppRole**
+   - Voor applicaties zoals n8n
+   - Alleen leesrechten voor specifieke secrets
+   - Korte levensduur tokens
+   - Aangemaakt via `prepare_namespace.sh`
+
+### Admin Aanmaken
+
+Gebruik het `create_admin.sh` script om een globale admin aan te maken:
+
+```bash
+./scripts/create_admin.sh --username admin
+```
+
+De admin krijgt volledige rechten om:
+
+- Namespaces te beheren
+- Auth methodes te configureren
+- Secrets engines te beheren
+- Policies aan te maken
+- Toegang tot alle secrets
+
+Na het aanmaken van een admin wordt aangeraden om de root token in te trekken:
+
+```bash
+vault token revoke -self
+```
+
+### Client Operators Aanmaken
+
+Gebruik het `create_operator.sh` script om per client een operator aan te maken:
+
+```bash
+./scripts/create_operator.sh --namespace digi4care --client klant123 --username klant123-operator
+```
+
+De operator krijgt beperkte rechten:
+
+- Volledige toegang tot de secrets van alleen die specifieke client
+- Alleen leesrechten voor de client lijst
+- Geen toegang tot andere clients of systeeminstellingen
+
+Operators kunnen inloggen met:
+
+```bash
+export VAULT_NAMESPACE=digi4care
+vault login -method=userpass username=klant123-operator
+```
 
 ## Stap-voor-stap: Eerste Keer Opstarten
 
@@ -184,27 +278,50 @@ Wanneer je de productiecontainer herstart:
 
 ## Veelgestelde Vragen
 
-### Waarom krijg ik steeds een nieuwe token in ontwikkeling?
+### Wat is het verschil tussen een root token en een gewone token?
 
-Dev-mode is ontworpen voor tijdelijk gebruik en reset alles bij elke start. Dit is normaal gedrag.
+Een root token heeft onbeperkte toegang tot alle functies en data in OpenBAO. Een gewone token heeft alleen toegang tot specifieke paden en functies, gebaseerd op de toegewezen policies.
 
-### Wat als ik mijn unseal keys kwijtraak?
+### Hoe lang blijft een token geldig?
 
-Zonder unseal keys kun je niet meer bij je data. Er is geen "reset" of "wachtwoord vergeten" functie. Bewaar deze keys op meerdere veilige locaties.
+In de ontwikkelomgeving: tot de container herstart wordt.
+In productie: tot de token wordt ingetrokken of verloopt (als er een TTL is ingesteld).
 
-### Moet ik de root token blijven gebruiken?
+### Wat gebeurt er als ik mijn root token kwijtraak?
 
-Nee, voor dagelijks gebruik is het beter om AppRole of een andere authenticatiemethode te gebruiken. De root token is alleen voor initiële setup en noodgevallen.
+In ontwikkeling: start de container opnieuw en gebruik de nieuwe token uit de logs.
+In productie: gebruik de unseal keys om een nieuwe root token te genereren met `vault operator generate-root`.
+
+### Moet ik OpenBAO elke keer unsealen na een herstart?
+
+Ja, in de productieomgeving moet je OpenBAO na elke herstart unsealen met minimaal 3 van de 5 unseal keys.
 
 ### Kan ik het unsealen automatiseren?
 
-Ja, maar dit vermindert de veiligheid. Auto-unseal kan worden geconfigureerd met cloud KMS-diensten of HashiCorp's Transit secrets engine.
+Technisch gezien wel, maar dit wordt afgeraden vanuit beveiligingsoogpunt. Het doel van sealing is juist om handmatige interventie te vereisen bij een herstart.
+
+### Wat is het verschil tussen een admin en een operator?
+
+Een admin heeft globale rechten om het hele systeem te beheren, inclusief alle namespaces. Een operator heeft alleen rechten om de secrets van één specifieke client te beheren binnen een namespace.
+
+### Moet ik de root token intrekken na gebruik?
+
+Ja, het is sterk aanbevolen om de root token in te trekken na het aanmaken van een admin gebruiker. De admin kan dan alle beheertaken uitvoeren zonder het beveiligingsrisico van een actieve root token.
+
+### Hoe kan een client operator inloggen?
+
+Een client operator moet eerst de namespace instellen en kan dan inloggen met de userpass methode:
+
+````bash
+export VAULT_NAMESPACE=digi4care
+vault login -method=userpass username=klant123-operator
+``` cloud KMS-diensten of HashiCorp's Transit secrets engine.
 
 ### Wat is het verschil tussen "sealed" en "unsealed"?
 
 - **Sealed**: OpenBAO is vergrendeld, de encryptiesleutel is niet in het geheugen, geen toegang tot data
 - **Unsealed**: OpenBAO is ontgrendeld, de encryptiesleutel is in het geheugen geladen, data is toegankelijk
-
 ### Hoeveel unseal keys heb ik nodig?
 
 Standaard genereert OpenBAO 5 keys, waarvan je er 3 nodig hebt om te unsealen (dit heet "Shamir's Secret Sharing"). Je kunt dit aanpassen tijdens initialisatie.
+````
