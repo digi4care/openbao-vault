@@ -332,9 +332,9 @@ This script implements token lifecycle management, allowing you to create short-
 
 - Creates tokens with limited TTL (Time-To-Live)
 - Supports both userpass and AppRole authentication
-- Saves tokens securely to files
-- Implements token role constraints
-- Enables regular token rotation for enhanced security
+- Implements token lifecycle management for enhanced security
+
+For detailed information about token rotation best practices and implementation, see [ROTATING_TOKENS.md](docs/ROTATING_TOKENS.md).
 
 ### User Access Hierarchy
 
@@ -460,21 +460,23 @@ vault kv get services/payment/api-keys
 vault kv put services/payment/api-keys stripe=new-token paypal=new-token
 ```
 
-## 🔌 Application Integration
+## 📱 Application Integration
 
-### Integration with n8n
+To integrate applications with OpenBAO, you'll need:
 
-1. Use the Vault node in n8n
-2. Configure it with the Role ID and Secret ID from the `create_namespace.sh` script
-3. Use the path `services/service-id/api-keys` to access secrets
+1. **AppRole credentials**:
+   - Role ID and Secret ID for the organization
+   - Obtained during namespace creation
 
-### Integration with Other Applications
+2. **Service path**:
+   - The path to the service secrets
+   - Format: `services/<service-name>`
 
-For other applications, you can use:
+3. **Organization namespace**:
+   - The namespace for the organization
+   - Format: `<organization-name>/`
 
-1. **Direct API access**: Using the OpenBAO HTTP API
-2. **Client libraries**: Official libraries available for various languages
-3. **AppRole authentication**: For secure machine-to-machine communication
+For detailed instructions on integrating applications with OpenBAO, including authentication, token renewal, error handling, and complete workflow examples, see [API_INTEGRATION.md](docs/API_INTEGRATION.md).
 
 ## 📝 Step-by-Step: First Time Setup
 

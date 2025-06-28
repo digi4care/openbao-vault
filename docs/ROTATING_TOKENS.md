@@ -35,6 +35,7 @@ Suppose you have a global admin account and you want to work securely:
 ```
 
 This gives you a token that:
+
 - Is valid for 1 hour (`-t 1h`)
 - Can be renewed for a maximum of 24 hours (`-m 24h`)
 - Has the admin policy (`-p admin`)
