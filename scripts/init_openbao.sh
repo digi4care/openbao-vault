@@ -9,10 +9,11 @@ set -e
 VAULT_ADDR=${VAULT_ADDR:-"http://127.0.0.1:8200"}
 
 # In productie moet je de root token gebruiken die je krijgt bij het initialiseren
-# In ontwikkeling kun je de standaard root token gebruiken
+# In ontwikkeling moet je de root token uit de container logs halen
 if [ -z "$VAULT_TOKEN" ]; then
   echo "WAARSCHUWING: Geen VAULT_TOKEN opgegeven."
-  echo "- Voor ontwikkeling: gebruik 'export VAULT_TOKEN=root-token-dev'"
+  echo "- Voor ontwikkeling: haal de root token op met 'docker logs openbao-dev | grep "Root Token"'"
+  echo "  en gebruik dan 'export VAULT_TOKEN=<token-from-logs>'"
   echo "- Voor productie: gebruik de root token die je kreeg bij 'vault operator init'"
   exit 1
 fi

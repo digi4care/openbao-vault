@@ -4,23 +4,23 @@ OpenBAO (Open Build, Authenticate, and Operate) is an open-source fork of HashiC
 
 ## 📋 Table of Contents
 
-- [What is OpenBAO?](#what-is-openbao)
-- [Why OpenBAO for Secrets Management?](#why-openbao-for-secrets-management)
-- [Development vs. Production Environment](#development-vs-production-environment)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Available Scripts](#available-scripts)
-- [User Management](#user-management)
+- [What is OpenBAO?](#-what-is-openbao)
+- [Why OpenBAO for Secrets Management?](#-why-openbao-for-secrets-management)
+- [Development vs. Production Environment](#-development-vs-production-environment)
+- [Installation](#-installation)
+- [Quick Start](#-quick-start)
+- [Available Scripts](#️-available-scripts)
+- [User Management](#-user-management)
   - [User Roles](#user-roles)
   - [Creating an Admin](#creating-an-admin)
   - [Creating Client Operators](#creating-client-operators)
-- [Managing Namespaces and Clients](#managing-namespaces-and-clients)
-- [Application Integration](#application-integration)
-- [Step-by-Step: First Time Setup](#step-by-step-first-time-setup)
+- [Managing Namespaces and Clients](#️-managing-namespaces-and-clients)
+- [Application Integration](#-application-integration)
+- [Step-by-Step: First Time Setup](#-step-by-step-first-time-setup)
   - [In Development](#in-development)
   - [In Production](#in-production)
-- [Step-by-Step: Restarting in Production](#step-by-step-restarting-in-production)
-- [Frequently Asked Questions](#frequently-asked-questions)
+- [Step-by-Step: Restarting in Production](#-step-by-step-restarting-in-production)
+- [Frequently Asked Questions](#-frequently-asked-questions)
 
 ## 🔍 What is OpenBAO?
 
@@ -51,7 +51,7 @@ When working with sensitive data like API keys, secure storage is essential. By 
 - **Security**: Minimal (for ease of development)
 - **Startup**: Automatic, no manual steps required
 - **Data persistence**: None, everything disappears on restart
-- **Root Token**: Default `root-token-dev` (set in `.env.vault.dev`)
+- **Root Token**: Automatically generated on startup (shown in container logs)
 
 ### Production Environment
 
@@ -102,7 +102,10 @@ openbao-vault/
 2. **Initialize OpenBAO**
 
    ```bash
-   export VAULT_TOKEN=root-token-dev
+   # First, get the root token from the container logs
+   docker logs openbao-dev | grep "Root Token"
+   # Then export it
+   export VAULT_TOKEN=<token-from-logs>
    ./scripts/init_openbao.sh
    ```
 
@@ -338,8 +341,11 @@ For other applications, you can use:
 # Start the container
 docker-compose -f docker-compose.dev.yml up -d
 
+# Get the root token from logs
+docker logs openbao-dev | grep "Root Token"
+
 # Set the root token
-export VAULT_TOKEN=root-token-dev
+export VAULT_TOKEN=<token-from-logs>
 
 # Initialize OpenBAO
 ./scripts/init_openbao.sh
