@@ -75,20 +75,26 @@ This repository contains a Docker-based setup for both development and productio
 
 ```bash
 openbao-vault/
-├── docker-compose.dev.yml    # Docker Compose for development
-├── docker-compose.prod.yml   # Docker Compose for production
-├── .env.vault.dev            # Environment variables for development
-├── .env.vault.prod           # Environment variables for production
+├── docs/                     # Documentation
+│   ├── API_INTEGRATION.md    # Guide for API integration with AppRole
+│   └── ROTATING_TOKENS.md    # Guide for token rotation best practices
 ├── scripts/
+│   ├── add_service.sh        # Script for adding services
+│   ├── create_namespace.sh   # Script for namespace preparation
+│   ├── create_global_admin.sh # Script for creating global admin users
+│   ├── create_operator.sh    # Script for creating service operators
+│   ├── enable_mfa.sh         # Script for enabling multi-factor authentication
 │   ├── init_openbao.sh       # Script for initial setup
-│   ├── create_namespace.sh  # Script for namespace preparation
-│   ├── add_service.sh         # Script for adding clients
-│   ├── create_admin.sh       # Script for creating admin users
-│   └── create_operator.sh    # Script for creating client operators
+│   ├── revoke_root_token.sh  # Script for securely revoking root token
+│   └── rotate_tokens.sh      # Script for token lifecycle management
 └── vault/                    # Data and configuration directories
     ├── data/                 # Persistent storage (automatically created)
     ├── config/               # Configuration files
     └── tls/                  # TLS certificates (for production)
+├── docker-compose.dev.yml    # Docker Compose for development
+├── docker-compose.prod.yml   # Docker Compose for production
+├── .env.vault.dev            # Environment variables for development
+└── .env.vault.prod           # Environment variables for production
 ```
 
 ## 🚀 Quick Start
