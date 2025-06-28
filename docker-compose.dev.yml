@@ -2,19 +2,15 @@ version: '3.7'
 
 services:
   vault:
-    image: hashicorp/vault:latest
+    image: quay.io/openbao/openbao:2.3.1
     container_name: vault-dev
     environment:
-      - VAULT_LOCAL_CONFIG
-      - VAULT_TLS_DISABLE
-    env_file:
-      - .env.vault.dev
+      - VAULT_DEV_ROOT_TOKEN_ID=root-token-dev
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+      - VAULT_ADDR=http://127.0.0.1:8200
     ports:
       - "127.0.0.1:49281:8200"  # Alleen lokaal toegankelijk op poort 49281
-    volumes:
-      - ./vault/data:/vault/file
-      - ./vault/config:/vault/config
     cap_add:
       - IPC_LOCK
     restart: unless-stopped
-    command: server -config=/vault/config/vault-config.hcl
+    # Geen command betekent dat het in dev-mode start

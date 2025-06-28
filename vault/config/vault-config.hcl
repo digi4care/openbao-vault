@@ -9,7 +9,7 @@ storage "file" {
 
 # TCP Listener met TLS
 listener "tcp" {
-  address     = "0.0.0.0:8200"
+  address     = "0.0.0.0:8201"
   tls_disable = "true"  # Zet dit op "false" en voeg certificaten toe voor productie
   telemetry {
     unauthenticated_metrics_access = false
@@ -17,7 +17,7 @@ listener "tcp" {
 }
 
 # API adres
-api_addr = "http://127.0.0.1:8200"
+api_addr = "http://127.0.0.1:8201"
 
 # Beveiligingsinstellingen
 default_lease_ttl = "768h"
