@@ -99,15 +99,16 @@ openbao-vault/
    docker-compose -f docker-compose.dev.yml up -d
    ```
 
-2. **Initialize OpenBAO**
+2. **Get the root token**
 
    ```bash
-   # First, get the root token from the container logs
+   # Get the root token from the container logs
    docker logs openbao-dev | grep "Root Token"
    # Then export it
    export VAULT_TOKEN=<token-from-logs>
-   ./scripts/init_openbao.sh
    ```
+
+   Note: In development mode, OpenBAO is automatically initialized and unsealed. The `init_openbao.sh` script is primarily used in production to check if OpenBAO is accessible.
 
 3. **Prepare a namespace**
 
@@ -139,7 +140,7 @@ openbao-vault/
 
 ### init_openbao.sh
 
-This script checks if OpenBAO is accessible and displays its status. It's the first step in setting up OpenBAO.
+This script checks if OpenBAO is accessible and displays its status. It's primarily used in production environments, as in development mode OpenBAO is automatically initialized and unsealed.
 
 ### prepare_namespace.sh
 
@@ -347,8 +348,8 @@ docker logs openbao-dev | grep "Root Token"
 # Set the root token
 export VAULT_TOKEN=<token-from-logs>
 
-# Initialize OpenBAO
-./scripts/init_openbao.sh
+# Optional: Check if OpenBAO is accessible
+# ./scripts/init_openbao.sh
 
 # Prepare a namespace
 ./scripts/prepare_namespace.sh --namespace example

@@ -1,5 +1,6 @@
 #!/bin/bash
-# Script voor initiële setup van OpenBAO
+# Script om de status van OpenBAO te controleren
+# Vooral nuttig in productieomgeving, in ontwikkelomgeving is OpenBAO direct klaar voor gebruik
 # Auteur: Chris Engelhard <chris@chrisengelhard.nl>
 # Datum: 2025-06-28
 
@@ -18,7 +19,7 @@ if [ -z "$VAULT_TOKEN" ]; then
   exit 1
 fi
 
-echo "OpenBAO initialisatie script"
+echo "OpenBAO status controle script"
 echo "============================"
 echo "Verbinding maken met OpenBAO op $VAULT_ADDR"
 
@@ -38,8 +39,9 @@ echo "OpenBAO is bereikbaar. Status:"
 vault status | grep "Seal Type\|Version"
 
 echo -e "\n================================================"
-echo "OpenBAO is succesvol geïnitialiseerd!"
+echo "OpenBAO is bereikbaar en klaar voor gebruik!"
 echo "================================================"
 echo "Je kunt nu het prepare_namespace.sh script uitvoeren om"
-echo "de namespace en authenticatie voor te bereiden."
+echo "de namespace en authenticatie voor te bereiden:"
+echo "./scripts/prepare_namespace.sh --namespace <namespace>"
 echo "================================================"
