@@ -6,20 +6,26 @@ OpenBAO (Open Build, Authenticate, and Operate) is an open-source fork of HashiC
 
 - [What is OpenBAO?](#-what-is-openbao)
 - [Why OpenBAO for Secrets Management?](#-why-openbao-for-secrets-management)
-- [Development vs. Production Environment](#-development-vs-production-environment)
-- [Installation](#-installation)
-- [Quick Start](#-quick-start)
-- [Available Scripts](#️-available-scripts)
+- [Installation and Setup](#-installation-and-setup)
+  - [Requirements](#requirements)
+  - [Directory Structure](#directory-structure)
+  - [Development vs. Production Environment](#development-vs-production-environment)
+- [Getting Started](#-getting-started)
+  - [Quick Start Guide](#quick-start-guide)
+  - [Step-by-Step: First Time Setup](#step-by-step-first-time-setup)
+  - [Step-by-Step: Restarting in Production](#step-by-step-restarting-in-production)
+- [Docker Setup](#-docker-setup)
 - [User Management](#-user-management)
   - [User Roles](#user-roles)
   - [Creating a Global Admin](#creating-a-global-admin)
   - [Creating Service Operators](#creating-service-operators)
-- [Managing Organizations and Services](#️-managing-organizations-and-services)
+- [Managing Organizations and Services](#managing-organizations-and-services)
+- [Security Features](#-security-features)
+  - [Multi-Factor Authentication](#multi-factor-authentication)
+  - [Token Lifecycle Management](#token-lifecycle-management)
+  - [Root Token Revocation](#root-token-revocation)
 - [Application Integration](#-application-integration)
-- [Step-by-Step: First Time Setup](#-step-by-step-first-time-setup)
-  - [In Development](#in-development)
-  - [In Production](#in-production)
-- [Step-by-Step: Restarting in Production](#-step-by-step-restarting-in-production)
+- [Available Scripts Reference](#-available-scripts)
 - [Frequently Asked Questions](#-frequently-asked-questions)
 
 ## 🔍 What is OpenBAO?
@@ -43,25 +49,7 @@ When working with sensitive data like API keys, secure storage is essential. By 
 4. **Enhanced security**: Central management of access rights and audit logs
 5. **Flexible authentication**: Different authentication methods for different use cases
 
-## 🔄 Development vs. Production Environment
-
-### Development Environment
-
-- **Storage type**: In-memory (temporary)
-- **Security**: Minimal (for ease of development)
-- **Startup**: Automatic, no manual steps required
-- **Data persistence**: None, everything disappears on restart
-- **Root Token**: Automatically generated on startup (shown in container logs)
-
-### Production Environment
-
-- **Storage type**: Persistent on disk
-- **Security**: Maximum (sealed/unsealed concept)
-- **Startup**: Manual steps required
-- **Data persistence**: Full, everything is preserved
-- **Root Token**: Generated during initialization, must be stored securely
-
-## 📦 Installation
+## 📦 Installation and Setup
 
 This repository contains a Docker-based setup for both development and production.
 
@@ -97,7 +85,27 @@ openbao-vault/
 └── .env.vault.prod           # Environment variables for production
 ```
 
-## 🚀 Quick Start
+### Development vs. Production Environment
+
+#### Development Environment
+
+- **Storage type**: In-memory (temporary)
+- **Security**: Minimal (for ease of development)
+- **Startup**: Automatic, no manual steps required
+- **Data persistence**: None, everything disappears on restart
+- **Root Token**: Automatically generated on startup (shown in container logs)
+
+#### Production Environment
+
+- **Storage type**: Persistent on disk
+- **Security**: Maximum (sealed/unsealed concept)
+- **Startup**: Manual steps required
+- **Data persistence**: Full, everything is preserved
+- **Root Token**: Generated during initialization, must be stored securely
+
+## 🚀 Getting Started
+
+### Quick Start Guide
 
 1. **Start OpenBAO in development mode**
 
@@ -149,16 +157,115 @@ openbao-vault/
    ./run_in_container.sh add_service.sh -o acme-corp -s payment -k stripe=sk_test_12345 -k paypal=client_id_abcdef
    ```
 
-6. **Create an admin user** (optional)
+6. **Create a global admin user** (optional)
 
    ```bash
-   ./run_in_container.sh create_admin.sh --username admin
+   ./run_in_container.sh create_global_admin.sh --username admin
    ```
 
 7. **Create a service operator** (optional)
 
    ```bash
    ./run_in_container.sh create_operator.sh --organization acme-corp --service payment --username payment-operator
+   ```
+
+### Step-by-Step: First Time Setup
+
+#### In Development
+
+1. **Start OpenBAO in development mode**
+
+   ```bash
+   docker-compose -f docker-compose.dev.yml up -d --build
+   ```
+
+2. **Create a namespace for your organization**
+
+   ```bash
+   ./run_in_container.sh create_namespace.sh --organization acme-corp
+   ```
+
+3. **Add a service with secrets**
+
+   ```bash
+   ./run_in_container.sh add_service.sh -o acme-corp -s payment -k stripe=sk_test_12345
+   ```
+
+4. **Create a global admin user** (optional but recommended)
+
+   ```bash
+   ./run_in_container.sh create_global_admin.sh --username admin
+   ```
+
+5. **Create service operators** (optional)
+
+   ```bash
+   ./run_in_container.sh create_operator.sh --organization acme-corp --service payment --username payment-operator
+   ```
+
+6. **Revoke the root token** (optional but recommended for security)
+
+   ```bash
+   ./run_in_container.sh revoke_root_token.sh
+   ```
+
+#### In Production
+
+1. **Start OpenBAO in production mode**
+
+   ```bash
+   docker-compose -f docker-compose.prod.yml up -d --build
+   ```
+
+2. **Initialize OpenBAO** (first time only)
+
+   ```bash
+   docker exec openbao-prod openbao operator init -key-shares=3 -key-threshold=2 > init.txt
+   ```
+
+   This generates:
+
+   - 3 unseal keys (you need 2 to unseal)
+   - 1 root token
+
+   Store these securely and distribute the unseal keys to different trusted individuals.
+
+3. **Unseal OpenBAO** (required after each restart)
+
+   ```bash
+   # Run this command 2 times with different unseal keys
+   docker exec -it openbao-prod openbao operator unseal
+   ```
+
+4. **Export the root token**
+
+   ```bash
+   export VAULT_TOKEN=<root-token-from-init.txt>
+   ```
+
+5. **Follow the development steps 2-6 above**
+
+### Step-by-Step: Restarting in Production
+
+When you restart the production container, OpenBAO will be sealed and you need to unseal it:
+
+1. **Start the container if it's not running**
+
+   ```bash
+   docker-compose -f docker-compose.prod.yml up -d
+   ```
+
+2. **Unseal OpenBAO**
+
+   ```bash
+   # Run this command 2 times with different unseal keys
+   docker exec -it openbao-prod openbao operator unseal
+   ```
+
+3. **Log in with your admin user**
+
+   ```bash
+   docker exec -it openbao-prod openbao login -method=userpass username=admin
    ```
 
 ## 🐳 Docker Setup
@@ -379,12 +486,12 @@ OpenBAO uses a hierarchy of user roles for secure management:
    - Short-lived tokens
    - Created via `create_namespace.sh`
 
-### Creating a Global Admin
+#### Creating a Global Admin
 
 Use the `create_global_admin.sh` script to create a global admin:
 
 ```bash
-./scripts/create_global_admin.sh --username admin
+./run_in_container.sh create_global_admin.sh --username admin
 ```
 
 The admin gets full rights to:
@@ -398,22 +505,15 @@ The admin gets full rights to:
 After creating an admin, you can choose to revoke the root token for better security:
 
 ```bash
-vault token revoke -self
+./run_in_container.sh revoke_root_token.sh
 ```
 
-**Note**: If you revoke the root token, you can no longer log in as root. In emergencies, you can always generate a new root token using the unseal keys:
-
-```bash
-vault operator generate-root -init
-# Follow the instructions and use at least 3 unseal keys
-```
-
-### Creating Service Operators
+#### Creating Service Operators
 
 Use the `create_operator.sh` script to create an operator for each service:
 
 ```bash
-./scripts/create_operator.sh --organization acme-corp --service payment --username payment-operator
+./run_in_container.sh create_operator.sh --organization acme-corp --service payment --username payment-operator
 ```
 
 The operator gets limited rights:
@@ -428,6 +528,59 @@ Operators can log in with:
 export VAULT_NAMESPACE=acme-corp
 vault login -method=userpass username=payment-operator
 ```
+
+## 🔒 Security Features
+
+OpenBAO provides several advanced security features to enhance your secrets management:
+
+### Multi-Factor Authentication
+
+For sensitive operations and administrative accounts, you can enable Multi-Factor Authentication (MFA) using the `enable_mfa.sh` script:
+
+```bash
+# Enable TOTP (Time-based One-Time Password) for an admin user
+./run_in_container.sh enable_mfa.sh -u admin.user -t totp
+```
+
+This supports:
+
+- TOTP (compatible with Google Authenticator, Authy, etc.)
+- Duo Security integration
+
+MFA adds an extra layer of security by requiring something you know (password) and something you have (authenticator app).
+
+### Token Lifecycle Management
+
+Proper token management is crucial for security. The `rotate_tokens.sh` script helps implement token lifecycle best practices:
+
+```bash
+# Create a short-lived token for a user
+./run_in_container.sh rotate_tokens.sh -u admin.user -t 1h -m 24h -p admin
+```
+
+This creates tokens with:
+
+- Limited TTL (Time-To-Live)
+- Maximum lifetime constraints
+- Proper policy attachments
+
+For detailed information about token rotation best practices and implementation, see [ROTATING_TOKENS.md](docs/ROTATING_TOKENS.md).
+
+### Root Token Revocation
+
+After initial setup, it's recommended to revoke the root token using the `revoke_root_token.sh` script:
+
+```bash
+./run_in_container.sh revoke_root_token.sh
+```
+
+This improves security by:
+
+- Removing the most powerful token from circulation
+- Enforcing the use of properly scoped admin accounts
+- Preventing accidental exposure of root-level access
+
+In emergency situations, a new root token can be generated using the unseal keys.
 
 ## 🗂️ Managing Organizations and Services
 
@@ -465,10 +618,12 @@ vault kv put services/payment/api-keys stripe=new-token paypal=new-token
 To integrate applications with OpenBAO, you'll need:
 
 1. **AppRole credentials**:
+
    - Role ID and Secret ID for the organization
    - Obtained during namespace creation
 
 2. **Service path**:
+
    - The path to the service secrets
    - Format: `services/<service-name>`
 
@@ -560,11 +715,11 @@ export VAULT_TOKEN=<token-from-logs>
    export VAULT_TOKEN=[Root Token]
    ```
 
-8. **Create an admin user** (recommended):
+8. **Create a global admin user** (optional but recommended):
 
    ```bash
    # For production, run scripts directly in the container
-   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/create_admin.sh --username admin
+   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/create_global_admin.sh --username admin
    ```
 
 9. **Prepare organizations and add services**:
