@@ -147,8 +147,13 @@ cat > /tmp/${POLICY_NAME}.hcl << EOF
 # Operator policy for service $SERVICE_ID
 # Provides full access to the secrets of this service
 
-# Read/write access to service secrets
-path "services/$SERVICE_ID/*" {
+# Read/write access to service secrets (KV v2 data paths)
+path "services/data/$SERVICE_ID/*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
+}
+
+# Access to KV v2 metadata paths
+path "services/metadata/$SERVICE_ID/*" {
   capabilities = ["create", "read", "update", "delete", "list"]
 }
 
@@ -156,9 +161,12 @@ path "services/$SERVICE_ID/*" {
 path "services/" {
   capabilities = ["list"]
 }
+path "services/metadata/" {
+  capabilities = ["list"]
+}
 
 # Read-only access to own service
-path "services/$SERVICE_ID" {
+path "services/metadata/$SERVICE_ID" {
   capabilities = ["list", "read"]
 }
 EOF

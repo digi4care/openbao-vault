@@ -12,9 +12,9 @@ OpenBAO (Open Build, Authenticate, and Operate) is an open-source fork of HashiC
 - [Available Scripts](#️-available-scripts)
 - [User Management](#-user-management)
   - [User Roles](#user-roles)
-  - [Creating an Admin](#creating-an-admin)
-  - [Creating Client Operators](#creating-client-operators)
-- [Managing Namespaces and Clients](#️-managing-namespaces-and-clients)
+  - [Creating a Global Admin](#creating-a-global-admin)
+  - [Creating Service Operators](#creating-service-operators)
+- [Managing Organizations and Services](#️-managing-organizations-and-services)
 - [Application Integration](#-application-integration)
 - [Step-by-Step: First Time Setup](#-step-by-step-first-time-setup)
   - [In Development](#in-development)
@@ -246,6 +246,24 @@ This script creates a global admin user who can manage all namespaces. This admi
 - Can create and manage all secrets engines
 - Can create and manage all policies
 - Can create and manage all namespaces
+
+### revoke_root_token.sh
+
+This script revokes the current root token after creating a global admin, improving security by removing the root token from circulation.
+
+**Usage:**
+
+```bash
+./run_in_container.sh revoke_root_token.sh
+# Or to skip confirmation prompt
+./run_in_container.sh revoke_root_token.sh --force
+```
+
+**Features:**
+
+- Verifies that the current token is a root token
+- Provides warnings and confirmation prompts
+- Ensures you don't accidentally revoke access to your OpenBAO system
 
 ### create_operator.sh
 
