@@ -96,8 +96,11 @@ openbao-vault/
 1. **Start OpenBAO in development mode**
 
    ```bash
-   docker-compose -f docker-compose.dev.yml up -d
+   # Build the custom Docker image with jq and start the container
+   docker-compose -f docker-compose.dev.yml up -d --build
    ```
+
+   The first time, you need to use the `--build` flag to build the custom Docker image that includes `jq` for JSON processing in the scripts.
 
 2. **Get the root token**
 
@@ -151,6 +154,33 @@ openbao-vault/
    ```bash
    ./run_in_container.sh create_operator.sh --namespace example --client client1 --username client1-operator
    ```
+
+## 🐳 Docker Setup
+
+This OpenBAO implementation uses a custom Docker setup with the following features:
+
+- **Custom Docker image**: Based on the official OpenBAO image with added `jq` for JSON processing in scripts
+- **Volume mounts**: Scripts are mounted as volumes instead of being copied into the image
+  - This allows removing scripts in production after initial setup
+  - Script changes are immediately available without rebuilding the image
+- **Development vs Production**:
+  - Development: Runs in `-dev` mode with automatic unseal and in-memory storage
+  - Production: Uses configuration files and persistent storage
+
+### Wrapper Script
+
+The `run_in_container.sh` wrapper script makes it easy to run scripts inside the container:
+
+```bash
+./run_in_container.sh <script_name> [arguments]
+```
+
+This script:
+
+1. Checks if the OpenBAO container is running
+2. Automatically retrieves the root token from container logs if `VAULT_TOKEN` is not set
+3. Makes the script executable in the container
+4. Executes the script in the appropriate directory within the container
 
 ## 🛠️ Available Scripts
 
@@ -373,11 +403,13 @@ export VAULT_TOKEN=<token-from-logs>
 
 ### In Production
 
-1. **Start the container**:
+1. **Start OpenBAO in production mode**:
 
    ```bash
-   docker-compose -f docker-compose.prod.yml up -d
+   docker-compose -f docker-compose.prod.yml up -d --build
    ```
+
+   The first time, you need to use the `--build` flag to build the custom Docker image that includes `jq` for JSON processing in the scripts.
 
 2. **Initialize OpenBAO** (you only do this once):
 
