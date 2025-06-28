@@ -146,10 +146,17 @@ De admin krijgt volledige rechten om:
 - Policies aan te maken
 - Toegang tot alle secrets
 
-Na het aanmaken van een admin wordt aangeraden om de root token in te trekken:
+Na het aanmaken van een admin kun je ervoor kiezen om de root token in te trekken voor betere beveiliging:
 
 ```bash
 vault token revoke -self
+```
+
+**Let op**: Als je de root token intrekt, kun je niet meer inloggen als root. In noodgevallen kun je altijd een nieuwe root token genereren met behulp van de unseal keys:
+
+```bash
+vault operator generate-root -init
+# Volg de instructies en gebruik minimaal 3 unseal keys
 ```
 
 ### Client Operators Aanmaken
@@ -306,7 +313,11 @@ Een admin heeft globale rechten om het hele systeem te beheren, inclusief alle n
 
 ### Moet ik de root token intrekken na gebruik?
 
-Ja, het is sterk aanbevolen om de root token in te trekken na het aanmaken van een admin gebruiker. De admin kan dan alle beheertaken uitvoeren zonder het beveiligingsrisico van een actieve root token.
+Het is een goede beveiligingspraktijk om de root token in te trekken na het aanmaken van een admin gebruiker, maar dit is niet verplicht. Bedenk wel dat:
+
+- Als je de root token intrekt, kun je niet meer inloggen als root
+- Je kunt altijd een nieuwe root token genereren met `vault operator generate-root` en je unseal keys
+- De admin kan alle dagelijkse beheertaken uitvoeren zonder het beveiligingsrisico van een actieve root token
 
 ### Hoe kan een client operator inloggen?
 
