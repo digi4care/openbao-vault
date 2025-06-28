@@ -13,6 +13,7 @@ services:
       - ./vault/data:/vault/file
       - ./vault/config:/vault/config
       - ./vault/tls:/vault/tls
+      - ./scripts:/usr/local/bin/openbao-scripts  # Scripts beschikbaar in container
     cap_add:
       - IPC_LOCK
     restart: unless-stopped
