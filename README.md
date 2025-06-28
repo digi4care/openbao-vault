@@ -137,10 +137,10 @@ openbao-vault/
 
    This script sets up the basic configuration for a namespace and displays the credentials you'll need for application integration.
 
-5. **Add a client**
+5. **Add a service**
 
    ```bash
-   ./run_in_container.sh add_service.sh -c client1 -k slack=xoxb-12345 -k twitter=abcdef
+   ./run_in_container.sh add_service.sh -o acme-corp -s payment -k stripe=sk_test_12345 -k paypal=client_id_abcdef
    ```
 
 6. **Create an admin user** (optional)
@@ -149,10 +149,10 @@ openbao-vault/
    ./run_in_container.sh create_admin.sh --username admin
    ```
 
-7. **Create a client operator** (optional)
+7. **Create a service operator** (optional)
 
    ```bash
-   ./run_in_container.sh create_operator.sh --namespace example --client client1 --username client1-operator
+   ./run_in_container.sh create_operator.sh --organization acme-corp --service payment --username payment-operator
    ```
 
 ## 🐳 Docker Setup
@@ -190,34 +190,34 @@ This script checks if OpenBAO is accessible and displays its status. It's primar
 
 ### create_namespace.sh
 
-This script prepares a namespace by:
+This script prepares an organization namespace by:
 
-- Creating a namespace
-- Enabling the KV secrets engine
+- Creating an organization namespace
+- Enabling the KV secrets engine at the services path
 - Configuring AppRole authentication
 - Creating policies
-- Generating Role ID and Secret ID for the namespace
+- Generating Role ID and Secret ID for the organization
 
 **Usage:**
 
 ```bash
-./scripts/create_namespace.sh --namespace [name] --path [path] --role [role] --ttl [time]
+./scripts/create_namespace.sh --organization [name] --path [path] --role [role] --ttl [time]
 ```
 
 ### add_service.sh
 
-This script adds a new client to OpenBAO with the appropriate secrets.
+This script adds a new service to an organization in OpenBAO with the appropriate secrets.
 
 **Usage with command-line parameters:**
 
 ```bash
-./scripts/add_service.sh -c client1 -k slack=xoxb-12345 -k twitter=abcdef
+./scripts/add_service.sh -o acme-corp -s payment -k stripe=sk_test_12345 -k paypal=client_id_abcdef
 ```
 
 **Usage with JSON file:**
 
 ```bash
-./scripts/add_service.sh -c client2 -f keys.json
+./scripts/add_service.sh -o acme-corp -s notification -f keys.json
 ```
 
 Example of a keys.json file:
@@ -249,19 +249,19 @@ This script creates a global admin user who can manage all namespaces. This admi
 
 ### create_operator.sh
 
-This script creates an operator for a specific client who can only manage that client's secrets within a specific namespace.
+This script creates an operator for a specific service who can only manage that service's secrets within an organization namespace.
 
 **Usage:**
 
 ```bash
-./run_in_container.sh create_operator.sh --namespace example --client client1 --username client1-operator
+./run_in_container.sh create_operator.sh --organization acme-corp --service payment --username payment-operator
 ```
 
 **Permissions:**
 
-- Limited to a single client's secrets within the specified namespace
-- Can read/write only that client's secrets
-- Cannot access other clients' secrets or system configuration
+- Limited to a single service's secrets within the specified organization
+- Can read/write only that service's secrets
+- Cannot access other services' secrets or system configuration
 
 ### User Access Hierarchy
 
@@ -269,7 +269,7 @@ The system implements a hierarchical access model:
 
 1. **Root Token**: Full system access, should only be used for initial setup and emergencies
 2. **Admin Users**: Global administrators who can manage the entire system
-3. **Operator Users**: Client-specific operators who can only manage their assigned client's secrets
+3. **Operator Users**: Service-specific operators who can only manage their assigned service's secrets
 
 This follows the principle of least privilege - users only get access to what they need to perform their specific tasks.
 
@@ -288,16 +288,16 @@ OpenBAO uses a hierarchy of user roles for secure management:
 
 2. **Admin**
 
-   - Global administrator who can manage all namespaces
-   - Can create namespaces, auth methods, and policies
+   - Global administrator who can manage all organization namespaces
+   - Can create organizations, auth methods, and policies
    - Replaces the root token for daily management
    - Created via `create_global_admin.sh`
 
 3. **Operators**
 
-   - One operator per client/namespace
-   - Can only manage the secrets of that specific client
-   - No access to system settings or other clients
+   - One operator per service within an organization
+   - Can only manage the secrets of that specific service
+   - No access to system settings or other services
    - Created via `create_operator.sh`
 
 4. **AppRole**
@@ -316,7 +316,7 @@ Use the `create_global_admin.sh` script to create a global admin:
 
 The admin gets full rights to:
 
-- Manage namespaces
+- Manage organization namespaces
 - Configure auth methods
 - Manage secrets engines
 - Create policies
@@ -335,56 +335,56 @@ vault operator generate-root -init
 # Follow the instructions and use at least 3 unseal keys
 ```
 
-### Creating Client Operators
+### Creating Service Operators
 
-Use the `create_operator.sh` script to create an operator for each client:
+Use the `create_operator.sh` script to create an operator for each service:
 
 ```bash
-./scripts/create_operator.sh --namespace example --client client1 --username client1-operator
+./scripts/create_operator.sh --organization acme-corp --service payment --username payment-operator
 ```
 
 The operator gets limited rights:
 
-- Full access to the secrets of only that specific client
-- Read-only access to the client list
-- No access to other clients or system settings
+- Full access to the secrets of only that specific service
+- Read-only access to the services list
+- No access to other services or system settings
 
 Operators can log in with:
 
 ```bash
-export VAULT_NAMESPACE=example
-vault login -method=userpass username=client1-operator
+export VAULT_NAMESPACE=acme-corp
+vault login -method=userpass username=payment-operator
 ```
 
-## 🗂️ Managing Namespaces and Clients
+## 🗂️ Managing Organizations and Services
 
-### Creating a New Namespace
+### Creating a New Organization
 
 Use the `create_namespace.sh` script:
 
 ```bash
-./scripts/create_namespace.sh --namespace marketing --path secrets --role api-access
+./scripts/create_namespace.sh --organization marketing --path secrets --role api-access
 ```
 
-### Adding a New Client
+### Adding a New Service
 
 Use the `add_service.sh` script as described above.
 
 ### Viewing Secrets
 
 ```bash
-# Set the namespace
-export VAULT_NAMESPACE=example
+# Set the organization namespace
+export VAULT_NAMESPACE=acme-corp
 
-# View a client's secrets
-vault kv get clients/client1/api-keys
+# View a service's secrets
+vault kv get services/payment/api-keys
 ```
 
 ### Updating Secrets
 
 ```bash
-# Update a client's secrets
-vault kv put clients/client1/api-keys slack=new-token twitter=new-token
+# Update a service's secrets
+vault kv put services/payment/api-keys stripe=new-token paypal=new-token
 ```
 
 ## 🔌 Application Integration
@@ -393,7 +393,7 @@ vault kv put clients/client1/api-keys slack=new-token twitter=new-token
 
 1. Use the Vault node in n8n
 2. Configure it with the Role ID and Secret ID from the `create_namespace.sh` script
-3. Use the path `clients/client-id/api-keys` to access secrets
+3. Use the path `services/service-id/api-keys` to access secrets
 
 ### Integration with Other Applications
 
@@ -492,11 +492,11 @@ export VAULT_TOKEN=<token-from-logs>
    docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/create_admin.sh --username admin
    ```
 
-9. **Prepare namespaces and add clients**:
+9. **Prepare organizations and add services**:
 
    ```bash
-   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/create_namespace.sh --namespace example
-   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/add_service.sh -c client1 -k api_key=12345
+   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/create_namespace.sh --organization acme-corp
+   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/add_service.sh -o acme-corp -s payment -k api_key=12345
    ```
 
 ## 🔄 Step-by-Step: Restarting in Production

@@ -10,7 +10,7 @@ show_help() {
   echo "Usage: $0 [options]"
   echo ""
   echo "Options:"
-  echo "  -o, --organization NAME  Organization name for the namespace (default: acme)"
+  echo "  -o, --organization NAME  Organization name for the namespace (default: acme-corp)"
   echo "  -p, --path PATH          Path for KV secrets engine (default: services)"
   echo "  -r, --role NAME          AppRole name (default: org-role)"
   echo "  -t, --ttl TIME           Token TTL (default: 1h)"
