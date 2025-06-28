@@ -1,53 +1,53 @@
 #!/bin/bash
-# Script voor het aanmaken van een client operator in OpenBAO
-# Auteur: Chris Engelhard <chris@chrisengelhard.nl>
-# Datum: 2025-06-28
+# Script for creating a service operator in OpenBAO
+# Author: Chris Engelhard <chris@chrisengelhard.nl>
+# Date: 2025-06-28
 
 set -e
 
-# Help functie
+# Help function
 show_help() {
-  echo "Gebruik: $0 [opties]"
+  echo "Usage: $0 [options]"
   echo ""
-  echo "Dit script maakt een operator aan voor een specifieke client/namespace."
-  echo "Deze operator kan alleen de secrets van die specifieke client beheren."
+  echo "This script creates an operator for a specific service within an organization namespace."
+  echo "This operator can only manage the secrets of that specific service."
   echo ""
-  echo "Opties:"
-  echo "  -n, --namespace NAAM   Namespace naam (verplicht)"
-  echo "  -c, --client ID        Client ID (verplicht)"
-  echo "  -u, --username NAAM    Operator gebruikersnaam (verplicht)"
-  echo "  -p, --password WACHT   Operator wachtwoord (optioneel, wordt anders gevraagd)"
-  echo "  -h, --help             Toon deze help"
+  echo "Options:"
+  echo "  -o, --organization NAME  Organization name (required)"
+  echo "  -s, --service ID         Service ID (required)"
+  echo "  -u, --username NAME      Operator username (required)"
+  echo "  -p, --password PASS      Operator password (optional, will be prompted if not provided)"
+  echo "  -h, --help               Show this help"
   echo ""
-  echo "Voorbeeld: $0 --namespace service1 --client klant1 --username klant1-operator"
+  echo "Example: $0 --organization acme-corp --service payment --username payment-operator"
   exit 1
 }
 
-# Configuratie
+# Configuration
 VAULT_ADDR=${VAULT_ADDR:-"http://127.0.0.1:8200"}
-NAMESPACE=""
-CLIENT_ID=""
+ORGANIZATION=""
+SERVICE_ID=""
 USERNAME=""
 PASSWORD=""
 
-# In productie moet je een admin token gebruiken, niet de root token
+# In production, use an admin token, not the root token
 if [ -z "$VAULT_TOKEN" ]; then
-  echo "WAARSCHUWING: Geen VAULT_TOKEN opgegeven."
-  echo "Gebruik een admin token of de root token (alleen voor setup)."
+  echo "WARNING: No VAULT_TOKEN provided."
+  echo "Use an admin token or the root token (only for setup)."
   exit 1
 fi
 
-# Verwerk command line argumenten
+# Process command line arguments
 while [[ $# -gt 0 ]]; do
   key="$1"
   case $key in
-    -n|--namespace)
-      NAMESPACE="$2"
+    -o|--organization)
+      ORGANIZATION="$2"
       shift
       shift
       ;;
-    -c|--client)
-      CLIENT_ID="$2"
+    -s|--service)
+      SERVICE_ID="$2"
       shift
       shift
       ;;
@@ -65,122 +65,122 @@ while [[ $# -gt 0 ]]; do
       show_help
       ;;
     *)
-      echo "Onbekende optie: $1"
+      echo "Unknown option: $1"
       show_help
       ;;
   esac
 done
 
-# Controleer of verplichte parameters zijn opgegeven
-if [ -z "$NAMESPACE" ]; then
-  echo "FOUT: Namespace is verplicht"
+# Check if required parameters are provided
+if [ -z "$ORGANIZATION" ]; then
+  echo "ERROR: Organization is required"
   show_help
 fi
 
-if [ -z "$CLIENT_ID" ]; then
-  echo "FOUT: Client ID is verplicht"
+if [ -z "$SERVICE_ID" ]; then
+  echo "ERROR: Service ID is required"
   show_help
 fi
 
 if [ -z "$USERNAME" ]; then
-  echo "FOUT: Gebruikersnaam is verplicht"
+  echo "ERROR: Username is required"
   show_help
 fi
 
-# Vraag om wachtwoord als het niet is opgegeven
+# Prompt for password if not provided
 if [ -z "$PASSWORD" ]; then
-  echo -n "Voer wachtwoord in voor operator $USERNAME: "
+  echo -n "Enter password for operator $USERNAME: "
   read -s PASSWORD
   echo ""
 
-  echo -n "Voer wachtwoord nogmaals in: "
+  echo -n "Confirm password: "
   read -s PASSWORD_CONFIRM
   echo ""
 
   if [ "$PASSWORD" != "$PASSWORD_CONFIRM" ]; then
-    echo "FOUT: Wachtwoorden komen niet overeen"
+    echo "ERROR: Passwords do not match"
     exit 1
   fi
 fi
 
-# Exporteer omgevingsvariabelen
+# Export environment variables
 export VAULT_ADDR
 export VAULT_TOKEN
 
-echo "OpenBAO client operator aanmaken: $USERNAME voor client $CLIENT_ID in namespace $NAMESPACE"
+echo "Creating OpenBAO service operator: $USERNAME for service $SERVICE_ID in organization $ORGANIZATION"
 echo "================================================================================"
 
-# Controleer of OpenBAO bereikbaar is
-echo "Controleren of OpenBAO bereikbaar is..."
+# Check if OpenBAO is accessible
+echo "Checking if OpenBAO is accessible..."
 if ! vault status > /dev/null 2>&1; then
-  echo "FOUT: Kan geen verbinding maken met OpenBAO op $VAULT_ADDR"
-  echo "Zorg ervoor dat OpenBAO draait en bereikbaar is."
+  echo "ERROR: Cannot connect to OpenBAO at $VAULT_ADDR"
+  echo "Make sure OpenBAO is running and accessible."
   exit 1
 fi
 
-# Controleer of de namespace bestaat
-echo -e "\nControleren of namespace $NAMESPACE bestaat..."
-if ! vault namespace list | grep -q "^$NAMESPACE/"; then
-  echo "FOUT: Namespace $NAMESPACE bestaat niet"
-  echo "Maak eerst de namespace aan met create_namespace.sh"
+# Check if the organization namespace exists
+echo -e "\nChecking if organization $ORGANIZATION exists..."
+if ! vault namespace list | grep -q "^$ORGANIZATION/"; then
+  echo "ERROR: Organization $ORGANIZATION does not exist"
+  echo "First create the organization with create_namespace.sh"
   exit 1
 fi
 
-# Selecteer de namespace
-export VAULT_NAMESPACE=$NAMESPACE
-echo "Namespace geselecteerd: $VAULT_NAMESPACE"
+# Select the organization namespace
+export VAULT_NAMESPACE=$ORGANIZATION
+echo "Organization selected: $VAULT_NAMESPACE"
 
-# Userpass authenticatie inschakelen als het nog niet is ingeschakeld
-echo -e "\nUserpass authenticatie inschakelen in namespace $NAMESPACE..."
+# Enable userpass authentication if not already enabled
+echo -e "\nEnabling userpass authentication in organization $ORGANIZATION..."
 if ! vault auth list | grep -q "^userpass/"; then
   vault auth enable userpass
-  echo "Userpass authenticatie ingeschakeld."
+  echo "Userpass authentication enabled."
 else
-  echo "Userpass authenticatie is al ingeschakeld."
+  echo "Userpass authentication is already enabled."
 fi
 
-# Operator policy aanmaken
-echo -e "\nOperator policy aanmaken voor client $CLIENT_ID..."
-POLICY_NAME="${CLIENT_ID}-operator"
+# Create operator policy
+echo -e "\nCreating operator policy for service $SERVICE_ID..."
+POLICY_NAME="${SERVICE_ID}-operator"
 
 cat > /tmp/${POLICY_NAME}.hcl << EOF
-# Operator policy voor client $CLIENT_ID
-# Geeft volledige toegang tot de secrets van deze client
+# Operator policy for service $SERVICE_ID
+# Provides full access to the secrets of this service
 
-# Lees/schrijf toegang tot client secrets
-path "clients/$CLIENT_ID/*" {
+# Read/write access to service secrets
+path "services/$SERVICE_ID/*" {
   capabilities = ["create", "read", "update", "delete", "list"]
 }
 
-# Alleen lezen van clients lijst
-path "clients/" {
+# Read-only access to services list
+path "services/" {
   capabilities = ["list"]
 }
 
-# Alleen lezen van eigen client
-path "clients/$CLIENT_ID" {
+# Read-only access to own service
+path "services/$SERVICE_ID" {
   capabilities = ["list", "read"]
 }
 EOF
 
 vault policy write $POLICY_NAME /tmp/${POLICY_NAME}.hcl
-echo "Policy '$POLICY_NAME' aangemaakt."
+echo "Policy '$POLICY_NAME' created."
 
-# Operator gebruiker aanmaken
-echo -e "\nOperator gebruiker aanmaken..."
+# Create operator user
+echo -e "\nCreating operator user..."
 vault write auth/userpass/users/$USERNAME \
   password="$PASSWORD" \
   policies=$POLICY_NAME
 
 echo -e "\n================================================================================"
-echo "Client operator is succesvol aangemaakt!"
+echo "Service operator successfully created!"
 echo "================================================================================"
-echo "Namespace: $NAMESPACE"
-echo "Client: $CLIENT_ID"
-echo "Gebruikersnaam: $USERNAME"
+echo "Organization: $ORGANIZATION"
+echo "Service: $SERVICE_ID"
+echo "Username: $USERNAME"
 echo "Policy: $POLICY_NAME"
 echo "================================================================================"
-echo -e "\nDe operator kan inloggen met:"
-echo "export VAULT_NAMESPACE=$NAMESPACE"
+echo -e "\nThe operator can log in with:"
+echo "export VAULT_NAMESPACE=$ORGANIZATION"
 echo "vault login -method=userpass username=$USERNAME"
 echo "================================================================================"
