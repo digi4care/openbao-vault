@@ -22,17 +22,17 @@ if ! docker ps | grep -q openbao-dev; then
   exit 1
 fi
 
-# Get the root token from logs if VAULT_TOKEN is not set
+# Get the latest root token from logs if VAULT_TOKEN is not set
 if [ -z "$VAULT_TOKEN" ]; then
-  echo "VAULT_TOKEN is not set. Attempting to get it from container logs..."
-  ROOT_TOKEN=$(docker logs openbao-dev 2>&1 | grep "Root Token:" | awk '{print $NF}')
+  echo "VAULT_TOKEN is not set. Attempting to get the latest root token from container logs..."
+  ROOT_TOKEN=$(docker logs openbao-dev 2>&1 | grep "Root Token:" | tail -1 | awk '{print $NF}')
   
   if [ -z "$ROOT_TOKEN" ]; then
     echo "Could not find Root Token in container logs."
     echo "Please set VAULT_TOKEN manually: export VAULT_TOKEN=<your-token>"
     exit 1
   else
-    echo "Found Root Token: $ROOT_TOKEN"
+    echo "Found latest Root Token: $ROOT_TOKEN"
     VAULT_TOKEN=$ROOT_TOKEN
   fi
 fi
