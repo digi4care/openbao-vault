@@ -8,6 +8,8 @@ services:
       - .env.vault.dev
     ports:
       - "127.0.0.1:8200:8200"  # Alleen lokaal toegankelijk op poort 8200
+    volumes:
+      - ./scripts:/opt/bin  # Scripts beschikbaar in container
     cap_add:
       - IPC_LOCK
     restart: unless-stopped

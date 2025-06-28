@@ -38,5 +38,9 @@ if [ -z "$VAULT_TOKEN" ]; then
 fi
 
 echo "Executing $SCRIPT_NAME in OpenBAO container..."
+
+# Zorg ervoor dat het script uitvoerbaar is
+docker exec openbao-dev chmod +x /opt/bin/$SCRIPT_NAME
+
 echo "Command: docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN=$VAULT_TOKEN openbao-dev sh -c \"cd /opt/bin && sh $SCRIPT_NAME $*\""
 docker exec -e VAULT_ADDR=http://127.0.0.1:8200 -e VAULT_TOKEN=$VAULT_TOKEN openbao-dev sh -c "cd /opt/bin && sh $SCRIPT_NAME $*"
