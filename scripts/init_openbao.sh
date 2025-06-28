@@ -1,47 +1,47 @@
 #!/bin/bash
-# Script om de status van OpenBAO te controleren
-# Vooral nuttig in productieomgeving, in ontwikkelomgeving is OpenBAO direct klaar voor gebruik
-# Auteur: Chris Engelhard <chris@chrisengelhard.nl>
-# Datum: 2025-06-28
+# Script to check the status of OpenBAO
+# Especially useful in production environment, in development environment OpenBAO is ready for use immediately
+# Author: Chris Engelhard <chris@chrisengelhard.nl>
+# Date: 2025-06-28
 
 set -e
 
-# Configuratie
+# Configuration
 VAULT_ADDR=${VAULT_ADDR:-"http://127.0.0.1:8200"}
 
-# In productie moet je de root token gebruiken die je krijgt bij het initialiseren
-# In ontwikkeling moet je de root token uit de container logs halen
+# In production, you must use the root token you get when initializing
+# In development, you need to get the root token from the container logs
 if [ -z "$VAULT_TOKEN" ]; then
-  echo "WAARSCHUWING: Geen VAULT_TOKEN opgegeven."
-  echo "- Voor ontwikkeling: haal de root token op met 'docker logs openbao-dev | grep "Root Token"'"
-  echo "  en gebruik dan 'export VAULT_TOKEN=<token-from-logs>'"
-  echo "- Voor productie: gebruik de root token die je kreeg bij 'vault operator init'"
+  echo "WARNING: No VAULT_TOKEN provided."
+  echo "- For development: retrieve the root token with 'docker logs openbao-dev | grep "Root Token"'"
+  echo "  and then use 'export VAULT_TOKEN=<token-from-logs>'"
+  echo "- For production: use the root token you received from 'vault operator init'"
   exit 1
 fi
 
-echo "OpenBAO status controle script"
+echo "OpenBAO status check script"
 echo "============================"
-echo "Verbinding maken met OpenBAO op $VAULT_ADDR"
+echo "Connecting to OpenBAO at $VAULT_ADDR"
 
-# Exporteer omgevingsvariabelen
+# Export environment variables
 export VAULT_ADDR
 export VAULT_TOKEN
 
-# Controleer of OpenBAO bereikbaar is
-echo "Controleren of OpenBAO bereikbaar is..."
+# Check if OpenBAO is accessible
+echo "Checking if OpenBAO is accessible..."
 if ! vault status > /dev/null 2>&1; then
-  echo "FOUT: Kan geen verbinding maken met OpenBAO op $VAULT_ADDR"
-  echo "Zorg ervoor dat OpenBAO draait en bereikbaar is."
+  echo "ERROR: Cannot connect to OpenBAO at $VAULT_ADDR"
+  echo "Make sure OpenBAO is running and accessible."
   exit 1
 fi
 
-echo "OpenBAO is bereikbaar. Status:"
+echo "OpenBAO is accessible. Status:"
 vault status | grep "Seal Type\|Version"
 
 echo -e "\n================================================"
-echo "OpenBAO is bereikbaar en klaar voor gebruik!"
+echo "OpenBAO is accessible and ready for use!"
 echo "================================================"
-echo "Je kunt nu het create_namespace.sh script uitvoeren om"
-echo "de namespace en authenticatie voor te bereiden:"
-echo "./scripts/create_namespace.sh --namespace <namespace>"
+echo "You can now run the create_namespace.sh script to"
+echo "prepare the organization namespace and authentication:"
+echo "./scripts/create_namespace.sh --organization <organization-name>"
 echo "================================================"

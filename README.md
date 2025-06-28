@@ -82,7 +82,7 @@ openbao-vault/
 ├── scripts/
 │   ├── init_openbao.sh       # Script for initial setup
 │   ├── create_namespace.sh  # Script for namespace preparation
-│   ├── add_client.sh         # Script for adding clients
+│   ├── add_service.sh         # Script for adding clients
 │   ├── create_admin.sh       # Script for creating admin users
 │   └── create_operator.sh    # Script for creating client operators
 └── vault/                    # Data and configuration directories
@@ -140,7 +140,7 @@ openbao-vault/
 5. **Add a client**
 
    ```bash
-   ./run_in_container.sh add_client.sh -c client1 -k slack=xoxb-12345 -k twitter=abcdef
+   ./run_in_container.sh add_service.sh -c client1 -k slack=xoxb-12345 -k twitter=abcdef
    ```
 
 6. **Create an admin user** (optional)
@@ -204,20 +204,20 @@ This script prepares a namespace by:
 ./scripts/create_namespace.sh --namespace [name] --path [path] --role [role] --ttl [time]
 ```
 
-### add_client.sh
+### add_service.sh
 
 This script adds a new client to OpenBAO with the appropriate secrets.
 
 **Usage with command-line parameters:**
 
 ```bash
-./scripts/add_client.sh -c client1 -k slack=xoxb-12345 -k twitter=abcdef
+./scripts/add_service.sh -c client1 -k slack=xoxb-12345 -k twitter=abcdef
 ```
 
 **Usage with JSON file:**
 
 ```bash
-./scripts/add_client.sh -c client2 -f keys.json
+./scripts/add_service.sh -c client2 -f keys.json
 ```
 
 Example of a keys.json file:
@@ -368,7 +368,7 @@ Use the `create_namespace.sh` script:
 
 ### Adding a New Client
 
-Use the `add_client.sh` script as described above.
+Use the `add_service.sh` script as described above.
 
 ### Viewing Secrets
 
@@ -496,7 +496,7 @@ export VAULT_TOKEN=<token-from-logs>
 
    ```bash
    docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/create_namespace.sh --namespace example
-   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/add_client.sh -c client1 -k api_key=12345
+   docker exec -e VAULT_TOKEN=$VAULT_TOKEN openbao-prod /opt/bin/add_service.sh -c client1 -k api_key=12345
    ```
 
 ## 🔄 Step-by-Step: Restarting in Production
